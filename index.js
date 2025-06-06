@@ -19,8 +19,8 @@ const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
-
 app.set('trust proxy', 1);
+
 // ======================
 // Middleware
 // ======================
@@ -94,15 +94,13 @@ app.get('/search', apiLimiter, async (req, res) => {
     const results = await yts(query);
     if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
 
-    // Your real API domain here:
-    const yourDomain = 'https://kish-md-api.onrender.com';
-
-    // Build the array with audio download links pointing to your /youtube endpoint
-    const songs = await Promise.all(results.videos.slice(0, 5).map(async (video) => {
-      return {
-        title: video.title,
-        audio: `${yourDomain}/youtube?url=${encodeURIComponent(video.url)}`
-      };
+    const yourDomain = process.env.API_DOMAIN || 'https://kish-md-api.onrender.com';
+    const songs = results.videos.slice(0, 5).map(video => ({
+      title: video.title,
+      url: video.url,
+      duration: formatDuration(video.seconds),
+      thumbnail: video.thumbnail,
+      audio: `${yourDomain}/youtube?url=${encodeURIComponent(video.url)}`
     }));
 
     res.json(songs);
@@ -111,6 +109,89 @@ app.get('/search', apiLimiter, async (req, res) => {
     res.status(500).json({ error: 'Search failed' });
   }
 });
+
+// YouTube Audio Downloader (Improved)
+app.get('/youtube', apiLimiter, async (req, res) => {
+  const videoUrl = req.query.url;
+  if (!videoUrl || !ytdl.validateURL(videoUrl)) {
+    return res.status(400).json({ error: '❌ Invalid YouTube URL' });
+  }
+
+  try {
+    // First try with ytdl-core
+    const info = await ytdl.getInfo(videoUrl);
+    const title = sanitizeFilename(info.videoDetails.title);
+    
+    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+    res.setHeader('Content-Type', 'audio/mpeg');
+
+    const audioStream = ytdl(videoUrl, {
+      filter: 'audioonly',
+      quality: 'highestaudio',
+      highWaterMark: 1 << 25,
+    });
+
+    // Error handling for the stream
+    audioStream.on('error', async (err) => {
+      console.error('ytdl-core failed, trying fallback:', err);
+      await tryYoutubeDlFallback(videoUrl, res, title);
+    });
+
+    // Timeout handling
+    const timeout = setTimeout(() => {
+      audioStream.destroy();
+      if (!res.headersSent) {
+        res.status(504).json({ error: '❌ Request timeout' });
+      }
+    }, 30000);
+
+    audioStream.pipe(res);
+    res.on('finish', () => clearTimeout(timeout));
+
+  } catch (err) {
+    console.error("YouTube error (primary):", err);
+    await tryYoutubeDlFallback(videoUrl, res);
+  }
+});
+
+// Fallback YouTube Downloader
+async function tryYoutubeDlFallback(videoUrl, res, title = 'audio') {
+  const tempFile = path.join(__dirname, `temp_yt_${Date.now()}.mp3`);
+  
+  try {
+    await youtubedl(videoUrl, {
+      extractAudio: true,
+      audioFormat: 'mp3',
+      output: tempFile,
+    });
+
+    if (!fs.existsSync(tempFile)) {
+      throw new Error('Fallback download failed');
+    }
+
+    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+    res.setHeader('Content-Type', 'audio/mpeg');
+
+    const fileStream = fs.createReadStream(tempFile);
+    fileStream.pipe(res);
+    
+    fileStream.on('end', () => cleanTempFiles(tempFile));
+    fileStream.on('error', () => cleanTempFiles(tempFile));
+
+  } catch (fallbackErr) {
+    console.error("YouTube fallback error:", fallbackErr);
+    cleanTempFiles(tempFile);
+    
+    let errorMsg = '❌ Failed to fetch audio stream';
+    if (fallbackErr.message.includes('Private video')) {
+      errorMsg = '❌ Video is private';
+    } else if (fallbackErr.message.includes('Age restricted')) {
+      errorMsg = '❌ Age-restricted video';
+    }
+    
+    res.status(500).json({ error: errorMsg });
+  }
+}
 
 // Lyrics Endpoint
 app.get('/lyrics', apiLimiter, async (req, res) => {
@@ -189,31 +270,6 @@ app.get("/facebook", apiLimiter, async (req, res) => {
   }
 });
 
-///youtube endpoint
-app.get('/youtube', async (req, res) => {
-  const videoUrl = req.query.url;
-  if (!videoUrl || !ytdl.validateURL(videoUrl)) {
-    return res.status(400).json({ error: '❌ Invalid or missing YouTube URL' });
-  }
-
-  try {
-    const info = await ytdl.getInfo(videoUrl);
-    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '_'); // safe filename
-
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    ytdl(videoUrl, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-      highWaterMark: 1 << 25,
-    }).pipe(res);
-  } catch (err) {
-    console.error("❌ YouTube stream error:", err);
-    res.status(500).json({ error: '❌ Failed to fetch audio stream' });
-  }
-});
-
 // GPT Chat Endpoint
 app.get("/gpt", apiLimiter, async (req, res) => {
   const prompt = req.query.text;
@@ -250,4 +306,5 @@ app.get("/gpt", apiLimiter, async (req, res) => {
 // ======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
+  console.log(`ℹ️  YouTube download methods available: ytdl-core + youtube-dl-exec fallback`);
 });
