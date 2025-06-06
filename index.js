@@ -147,65 +147,61 @@ app.get("/youtube", async (req, res) => {
 
 // Improved Lyrics Endpoint with full lyrics scraping
 app.get('/lyrics', async (req, res) => {
-  const { song } = req.query;
-
-  if (!song) {
-    return res.status(400).json({ error: 'Missing `song` query parameter' });
+  const songQuery = req.query.song || req.query.text;
+  if (!songQuery) {
+    return res.status(400).json({ error: 'Missing `song` or `text` query parameter' });
   }
 
   try {
-    const searchUrl = `https://genius.com/api/search/song?page=1&q=${encodeURIComponent(song)}`;
+    // Search for the song on Genius
+    const searchUrl = `https://genius.com/api/search/multi?per_page=5&q=${encodeURIComponent(songQuery)}`;
     const searchRes = await axios.get(searchUrl);
+    const sections = searchRes.data.response.sections;
+    let song = null;
 
-    const sections = searchRes.data?.response?.sections;
-    const hits = sections?.find(sec => sec.type === "song")?.hits;
-
-    if (!hits || hits.length === 0) {
-      return res.status(404).json({ error: `No lyrics found for "${song}"` });
+    // Find the first song result
+    for (const section of sections) {
+      if (section.type === 'song' && section.hits.length > 0) {
+        song = section.hits[0].result;
+        break;
+      }
     }
 
-    const songData = hits[0].result;
-    const songPage = await axios.get(songData.url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-      }
-    });
+    if (!song || !song.url) {
+      return res.status(404).json({ error: `No lyrics found for "${songQuery}".` });
+    }
 
+    // Fetch the song page
+    const songPage = await axios.get(song.url);
     const $ = cheerio.load(songPage.data);
+
+    // Extract lyrics
     let lyrics = '';
-
     $('div[data-lyrics-container="true"]').each((_, el) => {
-      $(el).find('br').replaceWith('\n');
-      const raw = $(el).text();
-      const clean = raw
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line =>
-          line &&
-          !line.toLowerCase().includes('translations') &&
-          !line.toLowerCase().includes('contributors') &&
-          !line.toLowerCase().includes('read more') &&
-          !line.toLowerCase().includes('lyrics')
-        )
-        .join('\n');
-
-      lyrics += clean + '\n\n';
+      const snippet = $(el).text().trim();
+      if (snippet) {
+        lyrics += snippet + '\n\n';
+      }
     });
 
     lyrics = lyrics.trim();
     if (!lyrics) {
-      return res.status(404).json({ error: `Lyrics not found for "${songData.full_title}"` });
+      return res.status(404).json({ error: `Lyrics not found for "${song.full_title}".` });
     }
 
-    return res.json({
-      title: songData.title,
-      artist: songData.primary_artist.name,
+    const response = {
+      title: song.title,
+      artist: song.primary_artist.name,
+      full_title: song.full_title,
+      url: song.url,
+      thumbnail: song.song_art_image_thumbnail_url,
       lyrics: lyrics
-    });
+    };
 
+    res.json(response);
   } catch (err) {
-    console.error('Lyrics error:', err.message || err);
-    return res.status(500).json({ error: 'Failed to fetch lyrics from Genius' });
+    console.error('Lyrics scraping error:', err);
+    res.status(500).json({ error: 'Failed to fetch lyrics. Please try again later.' });
   }
 });
 
