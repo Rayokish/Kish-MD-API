@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kish-MD API Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root {
       --primary: #00e5ff;
@@ -32,7 +32,6 @@
       flex-direction: column;
     }
 
-    /* Header Styles */
     header {
       background: linear-gradient(135deg, var(--dark), var(--darker));
       padding: 1rem 2rem;
@@ -64,7 +63,6 @@
       color: var(--primary);
     }
 
-    /* Navigation */
     nav ul {
       display: flex;
       list-style: none;
@@ -95,7 +93,6 @@
       padding-bottom: 0.3rem;
     }
 
-    /* Time Display */
     .time-display {
       background: rgba(0, 0, 0, 0.3);
       padding: 0.5rem 1rem;
@@ -110,7 +107,6 @@
       color: var(--primary);
     }
 
-    /* Main Content */
     main {
       flex: 1;
       padding: 2rem;
@@ -139,7 +135,6 @@
       margin-bottom: 2rem;
     }
 
-    /* Features Grid */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -209,7 +204,6 @@
       color: var(--dark);
     }
 
-    /* Stats Section */
     .stats {
       display: flex;
       justify-content: space-around;
@@ -242,7 +236,6 @@
       letter-spacing: 1px;
     }
 
-    /* Footer */
     footer {
       background: var(--dark);
       padding: 2rem;
@@ -272,7 +265,6 @@
       font-size: 0.9rem;
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       header {
         flex-direction: column;
@@ -302,7 +294,6 @@
       <i class="fas fa-code logo-icon"></i>
       <h1>Kish-MD API Hub</h1>
     </div>
-
     <nav>
       <ul>
         <li><a href="#" class="active"><i class="fas fa-home"></i> Home</a></li>
@@ -312,11 +303,75 @@
         <li><a href="#"><i class="fas fa-robot"></i> AI Chat</a></li>
       </ul>
     </nav>
-
     <div class="time-display">
       <i class="fas fa-clock"></i>
       <span id="live-time">Loading...</span>
     </div>
   </header>
+
+  <main>
+    <section class="hero">
+      <h2>Welcome to Kish-MD API Hub</h2>
+      <p>Your one-stop solution for all bot API services – Downloaders, Search, Chat AI, and much more.</p>
+      <a href="#" class="btn">Explore APIs</a>
+    </section>
+
+    <section class="features">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-download"></i></div>
+        <h3>Download Tools</h3>
+        <p>Access media from various platforms including YouTube, Instagram, and more with just a click.</p>
+        <a href="#" class="btn-outline">Try Now</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-music"></i></div>
+        <h3>Lyrics Finder</h3>
+        <p>Quickly get lyrics for your favorite songs using our reliable lyrics API module.</p>
+        <a href="#" class="btn-outline">Search Lyrics</a>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="fas fa-robot"></i></div>
+        <h3>Chat AI</h3>
+        <p>Integrate AI-powered conversation tools like ChatGPT and Gemini into your bots easily.</p>
+        <a href="#" class="btn-outline">Start Chatting</a>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat-item">
+        <div class="stat-number">99+</div>
+        <div class="stat-label">APIs</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">50k+</div>
+        <div class="stat-label">Users</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">24/7</div>
+        <div class="stat-label">Uptime</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="social-links">
+      <a href="#"><i class="fab fa-github"></i></a>
+      <a href="#"><i class="fab fa-whatsapp"></i></a>
+      <a href="#"><i class="fab fa-telegram"></i></a>
+    </div>
+    <div class="copyright">
+      &copy; 2025 Kish-MD API Hub. All rights reserved.
+    </div>
+  </footer>
+
+  <script>
+    function updateTime() {
+      const timeElement = document.getElementById('live-time');
+      const now = new Date();
+      timeElement.textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateTime, 1000);
+    updateTime();
+  </script>
 </body>
 </html>
