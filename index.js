@@ -1,12 +1,17 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
+const cheerio = require("cheerio");
 const yts = require("yt-search");
 const ytdl = require("ytdl-core");
+const fs = require("fs");
 const path = require("path");
+const { exec } = require("child_process");
+const util = require("util");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const cors = require("cors");
 
+const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -48,29 +53,75 @@ app.get("/gpt", async (req, res) => {
   }
 });
 
-// YouTube Music Download Endpoint
+// Improved Play Endpoint (Audio Download)
 app.get("/play", async (req, res) => {
   const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Missing query parameter" });
+  if (!query) return res.status(400).json({ error: "Please provide a song name" });
 
   try {
     const { videos } = await yts(query);
     if (!videos || !videos.length) {
-      return res.status(404).json({ error: "No results found", query });
+      return res.status(404).json({ error: "No results found" });
     }
 
-    const url = videos[0].url;
-    const info = await ytdl.getInfo(url);
-    const title = sanitizeFilename(info.videoDetails.title);
-    
-    res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    ytdl(url, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-    }).pipe(res);
+    const tempFile = `./temp_${Date.now()}.mp3`;
+    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `${videos[0].title}.mp3`, (err) => {
+      if (err) console.error("Download Error:", err);
+      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    });
   } catch (e) {
     console.error("Download Error:", e);
     res.status(500).json({ error: e.message });
+  }
+});
+
+// Improved TikTok Download Endpoint
+app.get("/tiktok", async (req, res) => {
+  const url = req.query.url;
+  if (!url || !url.includes('tiktok.com')) {
+    return res.status(400).json({ error: "Please provide a valid TikTok URL" });
+  }
+
+  try {
+    const tempFile = `./temp_tt_${Date.now()}.mp4`;
+    await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `tiktok_${Date.now()}.mp4`, (err) => {
+      if (err) console.error("Download Error:", err);
+      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    });
+  } catch (e) {
+    console.error("TikTok Error:", e);
+    res.status(500).json({ error: "TikTok download failed: " + e.message });
+  }
+});
+
+// Improved Facebook Download Endpoint
+app.get("/facebook", async (req, res) => {
+  const url = req.query.url;
+  if (!url || !url.includes('facebook.com')) {
+    return res.status(400).json({ error: "Please provide a valid Facebook URL" });
+  }
+
+  try {
+    const tempFile = `./temp_fb_${Date.now()}.mp4`;
+    await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `facebook_${Date.now()}.mp4`, (err) => {
+      if (err) console.error("Download Error:", err);
+      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    });
+  } catch (e) {
+    console.error("Facebook Error:", e);
+    res.status(500).json({ error: "Facebook download failed: " + e.message });
   }
 });
 
@@ -94,40 +145,59 @@ app.get("/youtube", async (req, res) => {
   }
 });
 
-// TikTok Download Endpoint (Disabled - requires yt-dlp)
-app.get("/tiktok", async (req, res) => {
-  res.status(501).json({ 
-    error: "TikTok downloads are currently unavailable. This endpoint requires yt-dlp to be installed on the server." 
-  });
-});
-
-// Facebook Download Endpoint (Disabled - requires yt-dlp)
-app.get("/facebook", async (req, res) => {
-  res.status(501).json({ 
-    error: "Facebook downloads are currently unavailable. This endpoint requires yt-dlp to be installed on the server." 
-  });
-});
-
-// Lyrics Endpoint
+// Improved Lyrics Endpoint with full lyrics scraping
 app.get("/lyrics", async (req, res) => {
   const text = req.query.text;
-  if (!text) return res.status(400).json({ error: "Missing song name" });
+  if (!text) return res.status(400).json({ error: "Please provide a song name" });
 
   try {
     const searchUrl = `https://genius.com/api/search/song?page=1&q=${encodeURIComponent(text)}`;
     const searchRes = await axios.get(searchUrl);
     const song = searchRes.data.response.sections[0].hits[0]?.result;
 
-    if (!song) return res.status(404).json({ error: "Lyrics not found" });
+    if (!song || !song.url) {
+      return res.status(404).json({ error: `No lyrics found for ${text}` });
+    }
 
-    res.json({
-      title: song.full_title,
-      url: song.url,
-      thumbnail: song.song_art_image_thumbnail_url
+    const songPage = await axios.get(song.url);
+    const $ = cheerio.load(songPage.data);
+
+    let lyrics = '';
+    $('div[data-lyrics-container="true"]').each((_, el) => {
+      $(el).find('br').replaceWith('\n');
+      const raw = $(el).text();
+      const clean = raw
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line =>
+          line &&
+          !line.toLowerCase().includes('translations') &&
+          !line.toLowerCase().includes('contributors') &&
+          !line.toLowerCase().includes('read more') &&
+          !line.toLowerCase().includes('lyrics')
+        )
+        .join('\n');
+      lyrics += clean + '\n\n';
     });
-  } catch (e) {
-    console.error("Lyrics Error:", e);
-    res.status(500).json({ error: e.message });
+
+    lyrics = lyrics.trim();
+    if (!lyrics) {
+      return res.status(404).json({ error: `Lyrics not found for ${song.full_title}` });
+    }
+
+    const response = {
+      title: song.title,
+      artist: song.primary_artist.name,
+      full_title: song.full_title,
+      url: song.url,
+      thumbnail: song.song_art_image_thumbnail_url,
+      lyrics: lyrics
+    };
+
+    res.json(response);
+  } catch (err) {
+    console.error('Lyrics scraping error:', err);
+    res.status(500).json({ error: "Failed to fetch lyrics. Try again later." });
   }
 });
 
