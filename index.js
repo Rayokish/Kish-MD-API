@@ -147,61 +147,31 @@ app.get("/youtube", async (req, res) => {
 
 // Improved Lyrics Endpoint with full lyrics scraping
 app.get('/lyrics', async (req, res) => {
-  const songQuery = req.query.song || req.query.text;
-  if (!songQuery) {
-    return res.status(400).json({ error: 'Missing `song` or `text` query parameter' });
+  const query = req.query.song;
+  if (!query) {
+    return res.status(400).json({ error: 'Missing `song` query parameter' });
   }
 
+  // Optional: Support formats like "Alan Walker - Faded"
+  const [artist, ...titleParts] = query.split("-");
+  const title = titleParts.join("-") || artist; // fallback if no dash
+  const cleanArtist = titleParts.length > 0 ? artist.trim() : 'Alan Walker';
+  const cleanTitle = title.trim();
+
   try {
-    // Search for the song on Genius
-    const searchUrl = `https://genius.com/api/search/multi?per_page=5&q=${encodeURIComponent(songQuery)}`;
-    const searchRes = await axios.get(searchUrl);
-    const sections = searchRes.data.response.sections;
-    let song = null;
-
-    // Find the first song result
-    for (const section of sections) {
-      if (section.type === 'song' && section.hits.length > 0) {
-        song = section.hits[0].result;
-        break;
-      }
+    const response = await axios.get(`https://api.lyrics.ovh/v1/${encodeURIComponent(cleanArtist)}/${encodeURIComponent(cleanTitle)}`);
+    
+    if (response.data && response.data.lyrics) {
+      return res.json({
+        artist: cleanArtist,
+        title: cleanTitle,
+        lyrics: response.data.lyrics.trim()
+      });
+    } else {
+      return res.status(404).json({ error: 'Lyrics not found.' });
     }
-
-    if (!song || !song.url) {
-      return res.status(404).json({ error: `No lyrics found for "${songQuery}".` });
-    }
-
-    // Fetch the song page
-    const songPage = await axios.get(song.url);
-    const $ = cheerio.load(songPage.data);
-
-    // Extract lyrics
-    let lyrics = '';
-    $('div[data-lyrics-container="true"]').each((_, el) => {
-      const snippet = $(el).text().trim();
-      if (snippet) {
-        lyrics += snippet + '\n\n';
-      }
-    });
-
-    lyrics = lyrics.trim();
-    if (!lyrics) {
-      return res.status(404).json({ error: `Lyrics not found for "${song.full_title}".` });
-    }
-
-    const response = {
-      title: song.title,
-      artist: song.primary_artist.name,
-      full_title: song.full_title,
-      url: song.url,
-      thumbnail: song.song_art_image_thumbnail_url,
-      lyrics: lyrics
-    };
-
-    res.json(response);
   } catch (err) {
-    console.error('Lyrics scraping error:', err);
-    res.status(500).json({ error: 'Failed to fetch lyrics. Please try again later.' });
+    return res.status(500).json({ error: 'Failed to fetch lyrics from API.' });
   }
 });
 
