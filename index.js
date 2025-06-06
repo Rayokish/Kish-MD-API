@@ -1,15 +1,12 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-const fs = require("fs");
 const yts = require("yt-search");
-const { exec } = require("child_process");
-const util = require("util");
+const ytdl = require("ytdl-core");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const cors = require("cors");
 
-const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -23,6 +20,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+// Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
@@ -34,6 +32,7 @@ const model = genAI.getGenerativeModel({
   },
 });
 
+// GPT Chat Endpoint
 app.get("/gpt", async (req, res) => {
   const prompt = req.query.text;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
@@ -49,6 +48,7 @@ app.get("/gpt", async (req, res) => {
   }
 });
 
+// YouTube Music Download Endpoint
 app.get("/play", async (req, res) => {
   const query = req.query.q;
   if (!query) return res.status(400).json({ error: "Missing query parameter" });
@@ -59,71 +59,56 @@ app.get("/play", async (req, res) => {
       return res.status(404).json({ error: "No results found", query });
     }
 
-    const tempFile = `./temp_${Date.now()}.mp3`;
-    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
-
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `${videos[0].title}.mp3`, () => fs.unlinkSync(tempFile));
+    const url = videos[0].url;
+    const info = await ytdl.getInfo(url);
+    const title = sanitizeFilename(info.videoDetails.title);
+    
+    res.header('Content-Disposition', `attachment; filename="${title}.mp3"`);
+    ytdl(url, {
+      filter: 'audioonly',
+      quality: 'highestaudio',
+    }).pipe(res);
   } catch (e) {
     console.error("Download Error:", e);
     res.status(500).json({ error: e.message });
   }
 });
 
+// YouTube Video Download Endpoint
 app.get("/youtube", async (req, res) => {
   const url = req.query.url;
   if (!url) return res.status(400).json({ error: "Missing YouTube URL" });
 
   try {
-    const tempFile = `./temp_${Date.now()}.mp4`;
-    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
-
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `youtube_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
+    const info = await ytdl.getInfo(url);
+    const title = sanitizeFilename(info.videoDetails.title);
+    
+    res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
+    ytdl(url, {
+      quality: 'highest',
+      filter: format => format.container === 'mp4',
+    }).pipe(res);
   } catch (e) {
     console.error("Download Error:", e);
     res.status(500).json({ error: e.message });
   }
 });
 
+// TikTok Download Endpoint (Disabled - requires yt-dlp)
 app.get("/tiktok", async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: "Missing TikTok URL" });
-  if (!url.startsWith("http")) return res.status(400).json({ error: "Invalid URL format" });
-
-  try {
-    const tempFile = `./temp_${Date.now()}.mp4`;
-    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
-
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `tiktok_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
-  } catch (e) {
-    console.error("Download Error:", e);
-    res.status(500).json({ error: e.message });
-  }
+  res.status(501).json({ 
+    error: "TikTok downloads are currently unavailable. This endpoint requires yt-dlp to be installed on the server." 
+  });
 });
 
+// Facebook Download Endpoint (Disabled - requires yt-dlp)
 app.get("/facebook", async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: "Missing Facebook URL" });
-  if (!url.startsWith("http")) return res.status(400).json({ error: "Invalid URL format" });
-
-  try {
-    const tempFile = `./temp_${Date.now()}.mp4`;
-    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
-
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `facebook_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
-  } catch (e) {
-    console.error("Download Error:", e);
-    res.status(500).json({ error: e.message });
-  }
+  res.status(501).json({ 
+    error: "Facebook downloads are currently unavailable. This endpoint requires yt-dlp to be installed on the server." 
+  });
 });
 
+// Lyrics Endpoint
 app.get("/lyrics", async (req, res) => {
   const text = req.query.text;
   if (!text) return res.status(400).json({ error: "Missing song name" });
@@ -146,4 +131,10 @@ app.get("/lyrics", async (req, res) => {
   }
 });
 
+// Helper function to sanitize filenames
+function sanitizeFilename(filename) {
+  return filename.replace(/[^\w\s.-]/gi, '').replace(/\s+/g, ' ').trim();
+}
+
+// Start server
 app.listen(port, () => console.log(`✅ Server running on http://localhost:${port}`));
