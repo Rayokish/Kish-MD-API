@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kish-MD API Hub</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
       --primary: #00e5ff;
@@ -16,13 +16,13 @@
       --gray: #2d2d2d;
       --success: #28a745;
     }
-
+    
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
+    
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--darker);
@@ -31,7 +31,8 @@
       display: flex;
       flex-direction: column;
     }
-
+    
+    /* Header Styles */
     header {
       background: linear-gradient(135deg, var(--dark), var(--darker));
       padding: 1rem 2rem;
@@ -43,13 +44,13 @@
       justify-content: space-between;
       align-items: center;
     }
-
+    
     .logo {
       display: flex;
       align-items: center;
       gap: 1rem;
     }
-
+    
     .logo h1 {
       font-size: 1.8rem;
       background: linear-gradient(to right, var(--primary), var(--secondary));
@@ -57,18 +58,19 @@
       background-clip: text;
       color: transparent;
     }
-
+    
     .logo-icon {
       font-size: 2rem;
       color: var(--primary);
     }
-
+    
+    /* Navigation */
     nav ul {
       display: flex;
       list-style: none;
       gap: 2rem;
     }
-
+    
     nav a {
       color: var(--light);
       text-decoration: none;
@@ -78,21 +80,22 @@
       align-items: center;
       gap: 0.5rem;
     }
-
+    
     nav a:hover {
       color: var(--primary);
     }
-
+    
     nav a i {
       font-size: 1.1rem;
     }
-
+    
     .active {
       color: var(--primary);
       border-bottom: 2px solid var(--primary);
       padding-bottom: 0.3rem;
     }
-
+    
+    /* Time Display */
     .time-display {
       background: rgba(0, 0, 0, 0.3);
       padding: 0.5rem 1rem;
@@ -102,23 +105,24 @@
       align-items: center;
       gap: 0.5rem;
     }
-
+    
     .time-display i {
       color: var(--primary);
     }
-
+    
+    /* Main Content */
     main {
       flex: 1;
       padding: 2rem;
     }
-
+    
     .hero {
       text-align: center;
       padding: 3rem 0;
       max-width: 800px;
       margin: 0 auto;
     }
-
+    
     .hero h2 {
       font-size: 2.5rem;
       margin-bottom: 1rem;
@@ -127,21 +131,22 @@
       background-clip: text;
       color: transparent;
     }
-
+    
     .hero p {
       color: #aaa;
       font-size: 1.1rem;
       line-height: 1.6;
       margin-bottom: 2rem;
     }
-
+    
+    /* Features Grid */
     .features {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 2rem;
       margin-top: 3rem;
     }
-
+    
     .feature-card {
       background: linear-gradient(145deg, #1a1a1a, #222);
       border-radius: 12px;
@@ -150,31 +155,31 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
-
+    
     .feature-card:hover {
       transform: translateY(-5px);
       box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
       border-color: rgba(0, 229, 255, 0.2);
     }
-
+    
     .feature-icon {
       font-size: 2.5rem;
       color: var(--primary);
       margin-bottom: 1.5rem;
     }
-
+    
     .feature-card h3 {
       font-size: 1.5rem;
       margin-bottom: 1rem;
       color: var(--light);
     }
-
+    
     .feature-card p {
       color: #aaa;
       line-height: 1.6;
       margin-bottom: 1.5rem;
     }
-
+    
     .btn {
       display: inline-block;
       padding: 0.8rem 1.5rem;
@@ -187,23 +192,24 @@
       transition: all 0.3s ease;
       cursor: pointer;
     }
-
+    
     .btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3);
     }
-
+    
     .btn-outline {
       background: transparent;
       border: 2px solid var(--primary);
       color: var(--primary);
     }
-
+    
     .btn-outline:hover {
       background: var(--primary);
       color: var(--dark);
     }
-
+    
+    /* Stats Section */
     .stats {
       display: flex;
       justify-content: space-around;
@@ -214,11 +220,11 @@
       background: rgba(0, 0, 0, 0.3);
       border-radius: 12px;
     }
-
+    
     .stat-item {
       text-align: center;
     }
-
+    
     .stat-number {
       font-size: 2.5rem;
       font-weight: 700;
@@ -228,60 +234,62 @@
       color: transparent;
       margin-bottom: 0.5rem;
     }
-
+    
     .stat-label {
       color: #aaa;
       font-size: 0.9rem;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
-
+    
+    /* Footer */
     footer {
       background: var(--dark);
       padding: 2rem;
       text-align: center;
       margin-top: auto;
     }
-
+    
     .social-links {
       display: flex;
       justify-content: center;
       gap: 1.5rem;
       margin-bottom: 1.5rem;
     }
-
+    
     .social-links a {
       color: var(--light);
       font-size: 1.5rem;
       transition: color 0.3s ease;
     }
-
+    
     .social-links a:hover {
       color: var(--primary);
     }
-
+    
     .copyright {
       color: #777;
       font-size: 0.9rem;
     }
-
+    
+    /* Responsive Design */
     @media (max-width: 768px) {
       header {
         flex-direction: column;
         gap: 1rem;
         padding: 1rem;
       }
-
+      
       nav ul {
         gap: 1rem;
         flex-wrap: wrap;
         justify-content: center;
       }
-
+      
       .hero h2 {
         font-size: 2rem;
       }
-
+      
       .features {
         grid-template-columns: 1fr;
       }
@@ -294,6 +302,7 @@
       <i class="fas fa-code logo-icon"></i>
       <h1>Kish-MD API Hub</h1>
     </div>
+    
     <nav>
       <ul>
         <li><a href="#" class="active"><i class="fas fa-home"></i> Home</a></li>
@@ -303,75 +312,200 @@
         <li><a href="#"><i class="fas fa-robot"></i> AI Chat</a></li>
       </ul>
     </nav>
+    
     <div class="time-display">
       <i class="fas fa-clock"></i>
       <span id="live-time">Loading...</span>
     </div>
   </header>
-
+  
   <main>
     <section class="hero">
-      <h2>Welcome to Kish-MD API Hub</h2>
-      <p>Your one-stop solution for all bot API services – Downloaders, Search, Chat AI, and much more.</p>
-      <a href="#" class="btn">Explore APIs</a>
-    </section>
-
-    <section class="features">
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-download"></i></div>
-        <h3>Download Tools</h3>
-        <p>Access media from various platforms including YouTube, Instagram, and more with just a click.</p>
-        <a href="#" class="btn-outline">Try Now</a>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-music"></i></div>
-        <h3>Lyrics Finder</h3>
-        <p>Quickly get lyrics for your favorite songs using our reliable lyrics API module.</p>
-        <a href="#" class="btn-outline">Search Lyrics</a>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon"><i class="fas fa-robot"></i></div>
-        <h3>Chat AI</h3>
-        <p>Integrate AI-powered conversation tools like ChatGPT and Gemini into your bots easily.</p>
-        <a href="#" class="btn-outline">Start Chatting</a>
+      <h2>Powerful API Services at Your Fingertips</h2>
+      <p>Access our suite of high-performance APIs for music search, lyrics, video downloads, and AI chat. Built for developers who demand reliability and speed.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="#features" class="btn">Explore Features</a>
+        <a href="#" class="btn btn-outline">API Documentation</a>
       </div>
     </section>
-
-    <section class="stats">
+    
+    <section id="features">
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>Music Search</h3>
+          <p>Search across thousands of music tracks with our powerful search API. Get comprehensive results including title, artist, duration and more.</p>
+          <a href="/search?q=example" class="btn">Try Search API</a>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-music"></i>
+          </div>
+          <h3>Lyrics Finder</h3>
+          <p>Get accurate lyrics for any song instantly. Our API connects to multiple sources to deliver the most complete lyrics database.</p>
+          <a href="/lyrics?text=example" class="btn">Try Lyrics API</a>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <h3>Video Download</h3>
+          <p>Download videos from YouTube, TikTok, Facebook and more with our high-speed download API. Multiple formats supported.</p>
+          <a href="/youtube?url=example" class="btn">Try Downloader</a>
+        </div>
+      </div>
+      
+      <div class="features" style="margin-top: 2rem;">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-robot"></i>
+          </div>
+          <h3>AI Chat</h3>
+          <p>Integrate our powerful Gemini AI into your applications. Get human-like responses for any query with our chat API.</p>
+          <a href="/gpt?text=Hello" class="btn">Try AI Chat</a>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>High Performance</h3>
+          <p>Our APIs are optimized for speed and reliability. Built with Node.js and Express for maximum throughput.</p>
+          <a href="#" class="btn">View Benchmarks</a>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Secure Access</h3>
+          <p>All API endpoints are protected with rate limiting and authentication to prevent abuse and ensure fair usage.</p>
+          <a href="#" class="btn">Security Info</a>
+        </div>
+      </div>
+    </section>
+    
+    <div class="stats">
       <div class="stat-item">
-        <div class="stat-number">99+</div>
-        <div class="stat-label">APIs</div>
+        <div class="stat-number" id="api-calls">10K+</div>
+        <div class="stat-label">Daily API Calls</div>
       </div>
       <div class="stat-item">
-        <div class="stat-number">50k+</div>
-        <div class="stat-label">Users</div>
-      </div>
-      <div class="stat-item">
-        <div class="stat-number">24/7</div>
+        <div class="stat-number" id="uptime">99.9%</div>
         <div class="stat-label">Uptime</div>
       </div>
-    </section>
+      <div class="stat-item">
+        <div class="stat-number" id="response-time">200ms</div>
+        <div class="stat-label">Avg Response</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="endpoints">15+</div>
+        <div class="stat-label">Endpoints</div>
+      </div>
+    </div>
   </main>
-
+  
   <footer>
     <div class="social-links">
       <a href="#"><i class="fab fa-github"></i></a>
-      <a href="#"><i class="fab fa-whatsapp"></i></a>
-      <a href="#"><i class="fab fa-telegram"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-discord"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
     </div>
-    <div class="copyright">
-      &copy; 2025 Kish-MD API Hub. All rights reserved.
-    </div>
+    <p class="copyright">© 2025 Kish-MD API Hub. All rights reserved.</p>
   </footer>
 
   <script>
+    // Real-time clock
     function updateTime() {
-      const timeElement = document.getElementById('live-time');
       const now = new Date();
-      timeElement.textContent = now.toLocaleTimeString();
+      const timeString = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      document.getElementById('live-time').textContent = timeString;
     }
+    
     setInterval(updateTime, 1000);
     updateTime();
+    
+    // Animated stats counter
+    function animateStats() {
+      const counters = [
+        { element: 'api-calls', target: 12543, suffix: '+' },
+        { element: 'uptime', target: 99.9, suffix: '%' },
+        { element: 'response-time', target: 187, suffix: 'ms' },
+        { element: 'endpoints', target: 18, suffix: '+' }
+      ];
+      
+      const duration = 2000; // Animation duration in ms
+      const steps = 50; // Number of steps
+      const stepTime = duration / steps;
+      
+      counters.forEach(counter => {
+        const element = document.getElementById(counter.element);
+        const start = 0;
+        const increment = (counter.target - start) / steps;
+        let current = start;
+        
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= counter.target) {
+            clearInterval(timer);
+            current = counter.target;
+          }
+          
+          if (counter.element === 'response-time') {
+            element.textContent = Math.floor(current) + counter.suffix;
+          } else if (counter.element === 'uptime') {
+            element.textContent = current.toFixed(1) + counter.suffix;
+          } else {
+            element.textContent = Math.floor(current) + counter.suffix;
+          }
+        }, stepTime);
+      });
+    }
+    
+    // Start animation when stats are visible
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateStats();
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    
+    observer.observe(document.querySelector('.stats'));
+    
+    // Smooth scrolling for navigation
+    document.querySelectorAll('nav a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        document.querySelectorAll('nav a').forEach(a => {
+          a.classList.remove('active');
+        });
+        this.classList.add('active');
+        
+        const targetId = this.getAttribute('href');
+        if (targetId.startsWith('#')) {
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 100,
+              behavior: 'smooth'
+            });
+          }
+        }
+      });
+    });
   </script>
 </body>
 </html>
