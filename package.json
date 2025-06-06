@@ -1,15 +1,21 @@
 {
-  "name": "gpt-downloader",
+  "name": "kish-md-api",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.5.0",
     "axios": "^1.6.8",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "yt-dlp-exec": "^1.2.0",
     "yt-search": "^2.10.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
   }
 }
