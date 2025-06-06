@@ -1,84 +1,143 @@
-require('dotenv').config();
-const express = require('express');
-const axios = require('axios');
-const bodyParser = require('body-parser');
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+const fs = require("fs");
+const yts = require("yt-search");
+const { exec } = require("child_process");
+const util = require("util");
+const path = require("path");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const execAsync = util.promisify(exec);
 const app = express();
+const port = process.env.PORT || 8080;
 
-const PORT = process.env.PORT || 3000;
-
-app.use(express.static('public'));
-app.use(bodyParser.json());
-
-// Music Downloader using DisTube & ytdl-core (simulated)
-app.get('/play', async (req, res) => {
-  const text = req.query.text;
-  if (!text) return res.status(400).json({ error: 'Please provide ?text=songname' });
-
-  // Placeholder: Normally here would be YouTube search + download
-  res.json({ message: `Simulated download for song: ${text}` });
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Chat with Gemini AI
-app.post('/gpt', async (req, res) => {
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    temperature: 0.3,
+    topP: 0.95,
+    topK: 64,
+    maxOutputTokens: 8192,
+  },
+});
+
+app.use(express.json());
+
+app.post("/gpt", async (req, res) => {
   const prompt = req.body.prompt;
-  if (!prompt) return res.status(400).json({ error: 'Please provide JSON body with prompt' });
+  if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+
   try {
-    const response = await axios.post(
-      'https://api.maher-zubair.xyz/gemini',
-      { prompt },
-      { headers: { 'Authorization': `Bearer ${process.env.GEMINI_API_KEY}` } }
-    );
-    res.json(response.data);
+    const chat = model.startChat({ history: [], generationConfig: {} });
+    const result = await chat.sendMessage(prompt);
+    const response = await result.response;
+    res.json({ response: response.text() });
   } catch (err) {
-    res.status(500).json({ error: 'Gemini API request failed', details: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch GPT response" });
   }
 });
 
-// Downloader endpoints using Maher API key
-app.get('/tiktok', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: 'Please provide ?url=video_url' });
+app.get("/play", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Missing query parameter" });
+
   try {
-    const response = await axios.get(`https://api.maher-zubair.xyz/downloader/tiktok?apikey=${process.env.MAHER_API_KEY}&url=${encodeURIComponent(url)}`);
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: 'TikTok downloader failed', details: err.message });
+    const { videos } = await yts(query);
+    if (!videos.length) return res.status(404).json({ error: "No results found" });
+
+    const tempFile = `./temp_${Date.now()}.mp3`;
+    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `${videos[0].title}.mp3`, () => fs.unlinkSync(tempFile));
+  } catch (e) {
+    console.error("Download Error:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
-app.get('/facebook', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: 'Please provide ?url=video_url' });
+app.get("/youtube", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Missing query parameter" });
+
   try {
-    const response = await axios.get(`https://api.maher-zubair.xyz/downloader/facebook?apikey=${process.env.MAHER_API_KEY}&url=${encodeURIComponent(url)}`);
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: 'Facebook downloader failed', details: err.message });
+    const { videos } = await yts(query);
+    if (!videos.length) return res.status(404).json({ error: "No results found" });
+
+    const tempFile = `./temp_${Date.now()}.mp3`;
+    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `${videos[0].title}.mp3`, () => fs.unlinkSync(tempFile));
+  } catch (e) {
+    console.error("Download Error:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
-app.get('/youtube', async (req, res) => {
-  const url = req.query.url;
-  if (!url) return res.status(400).json({ error: 'Please provide ?url=video_url' });
+app.get("/tiktok", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Missing TikTok URL" });
+
   try {
-    const response = await axios.get(`https://api.maher-zubair.xyz/downloader/youtube?apikey=${process.env.MAHER_API_KEY}&url=${encodeURIComponent(url)}`);
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: 'YouTube downloader failed', details: err.message });
+    const tempFile = `./temp_${Date.now()}.mp4`;
+    await execAsync(`yt-dlp -o "${tempFile}" ${query}`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `tiktok_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
+  } catch (e) {
+    console.error("Download Error:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
-app.get('/lyrics', async (req, res) => {
-  const text = req.query.text;
-  if (!text) return res.status(400).json({ error: 'Please provide ?text=songname' });
+app.get("/facebook", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Missing Facebook URL" });
+
   try {
-    const response = await axios.get(`https://api.maher-zubair.xyz/lyrics?apikey=${process.env.MAHER_API_KEY}&text=${encodeURIComponent(text)}`);
-    res.json(response.data);
-  } catch (err) {
-    res.status(500).json({ error: 'Lyrics fetch failed', details: err.message });
+    const tempFile = `./temp_${Date.now()}.mp4`;
+    await execAsync(`yt-dlp -o "${tempFile}" ${query}`);
+
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `facebook_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
+  } catch (e) {
+    console.error("Download Error:", e);
+    res.status(500).json({ error: e.message });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get("/lyrics", async (req, res) => {
+  const text = req.query.q;
+  if (!text) return res.status(400).json({ error: "Missing query" });
+
+  try {
+    const searchUrl = `https://genius.com/api/search/song?page=1&q=${encodeURIComponent(text)}`;
+    const searchRes = await axios.get(searchUrl);
+    const song = searchRes.data.response.sections[0].hits[0]?.result;
+
+    if (!song) return res.status(404).json({ error: "Lyrics not found" });
+
+    res.json({
+      title: song.full_title,
+      url: song.url,
+      thumbnail: song.song_art_image_thumbnail_url
+    });
+  } catch (e) {
+    console.error("Lyrics Error:", e);
+    res.status(500).json({ error: e.message });
+  }
 });
+
+app.listen(port, () => console.log(`✅ Server running on http://localhost:${port}`));
