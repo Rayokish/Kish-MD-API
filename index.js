@@ -111,6 +111,35 @@ app.get('/search', apiLimiter, async (req, res) => {
   }
 });
 
+// Lyrics Endpoint
+app.get('/lyrics', apiLimiter, async (req, res) => {
+  const query = req.query.text;
+  if (!query) return res.status(400).json({ error: 'Missing song parameter' });
+
+  try {
+    const [artist, title] = query.includes('-') ? 
+      query.split('-').map(s => s.trim()) : 
+      [null, query.trim()];
+    
+    const response = await axios.get(
+      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(title)}`,
+      { timeout: 5000 }
+    );
+    
+    if (response.data?.lyrics) {
+      return res.json({
+        artist: artist || 'Unknown',
+        title,
+        lyrics: response.data.lyrics.trim()
+      });
+    }
+    return res.status(404).json({ error: 'Lyrics not found' });
+  } catch (error) {
+    console.error('Lyrics error:', error);
+    res.status(500).json({ error: 'Failed to fetch lyrics' });
+  }
+});
+
 // TikTok Downloader
 app.get("/tiktok", apiLimiter, async (req, res) => {
   const url = req.query.url;
@@ -178,38 +207,9 @@ app.get("/youtube", apiLimiter, async (req, res) => {
   }
 });
 
-// Lyrics Endpoint
-app.get('/lyrics', apiLimiter, async (req, res) => {
-  const query = req.query.song;
-  if (!query) return res.status(400).json({ error: 'Missing song parameter' });
-
-  try {
-    const [artist, title] = query.includes('-') ? 
-      query.split('-').map(s => s.trim()) : 
-      [null, query.trim()];
-    
-    const response = await axios.get(
-      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(title)}`,
-      { timeout: 5000 }
-    );
-    
-    if (response.data?.lyrics) {
-      return res.json({
-        artist: artist || 'Unknown',
-        title,
-        lyrics: response.data.lyrics.trim()
-      });
-    }
-    return res.status(404).json({ error: 'Lyrics not found' });
-  } catch (error) {
-    console.error('Lyrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch lyrics' });
-  }
-});
-
 // GPT Chat Endpoint
 app.get("/gpt", apiLimiter, async (req, res) => {
-  const prompt = req.query.text || req.query.prompt;
+  const prompt = req.query.text;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   try {
