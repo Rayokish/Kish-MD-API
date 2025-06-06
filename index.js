@@ -192,17 +192,26 @@ app.get("/facebook", apiLimiter, async (req, res) => {
 ///youtube endpoint
 app.get('/youtube', async (req, res) => {
   const videoUrl = req.query.url;
-  if (!videoUrl) return res.status(400).json({ error: 'Missing url parameter' });
+  if (!videoUrl || !ytdl.validateURL(videoUrl)) {
+    return res.status(400).json({ error: '❌ Invalid or missing YouTube URL' });
+  }
 
-  const stream = ytdl(videoUrl, {
-    filter: 'audioonly',
-    quality: 'highestaudio',
-    highWaterMark: 1 << 25,
-  });
+  try {
+    const info = await ytdl.getInfo(videoUrl);
+    const title = info.videoDetails.title.replace(/[^\w\s]/gi, '_'); // safe filename
 
-  res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
-  res.setHeader('Content-Type', 'audio/mpeg');
-  stream.pipe(res);
+    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+    res.setHeader('Content-Type', 'audio/mpeg');
+
+    ytdl(videoUrl, {
+      filter: 'audioonly',
+      quality: 'highestaudio',
+      highWaterMark: 1 << 25,
+    }).pipe(res);
+  } catch (err) {
+    console.error("❌ YouTube stream error:", err);
+    res.status(500).json({ error: '❌ Failed to fetch audio stream' });
+  }
 });
 
 // GPT Chat Endpoint
