@@ -1,592 +1,511 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media API Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --accent: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4cc9f0;
-            --warning: #f8961e;
-            --danger: #ef233c;
-            --gray: #6c757d;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f7fa;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            color: var(--gray);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .endpoint-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .endpoint-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .endpoint-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-header {
-            background-color: var(--primary);
-            color: white;
-            padding: 1rem;
-            font-weight: 500;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .method {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            margin-right: 0.5rem;
-        }
-        
-        .get {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .post {
-            background-color: var(--accent);
-            color: white;
-        }
-        
-        .path {
-            font-family: monospace;
-            background-color: #f8f9fa;
-            padding: 0.5rem;
-            border-radius: 4px;
-            display: block;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-        
-        .param {
-            margin-bottom: 1rem;
-        }
-        
-        .param-name {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .param-type {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        .param-desc {
-            margin-top: 0.25rem;
-            font-size: 0.9rem;
-        }
-        
-        .example {
-            margin-top: 1.5rem;
-        }
-        
-        .example-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--secondary);
-        }
-        
-        .example-code {
-            background-color: #2b2d42;
-            color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-        }
-        
-        .try-it {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .try-it-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
-            margin-bottom: 0.5rem;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: background-color 0.3s ease;
-        }
-        
-        button:hover {
-            background-color: var(--secondary);
-        }
-        
-        .response {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            max-height: 300px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e0e0e0;
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .endpoint-container {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kish-MD API Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #00e5ff;
+      --secondary: #7b2cbf;
+      --dark: #121212;
+      --darker: #0a0a0a;
+      --light: #f8f9fa;
+      --gray: #2d2d2d;
+      --success: #28a745;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--darker);
+      color: var(--light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Header Styles */
+    header {
+      background: linear-gradient(135deg, var(--dark), var(--darker));
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .logo h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .logo-icon {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+    
+    /* Navigation */
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 2rem;
+    }
+    
+    nav a {
+      color: var(--light);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    nav a:hover {
+      color: var(--primary);
+    }
+    
+    nav a i {
+      font-size: 1.1rem;
+    }
+    
+    .active {
+      color: var(--primary);
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 0.3rem;
+    }
+    
+    /* Time Display */
+    .time-display {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .time-display i {
+      color: var(--primary);
+    }
+    
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 2rem;
+    }
+    
+    .hero {
+      text-align: center;
+      padding: 3rem 0;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .hero h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .hero p {
+      color: #aaa;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+    
+    /* Features Grid */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    
+    .feature-card {
+      background: linear-gradient(145deg, #1a1a1a, #222);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+      border-color: rgba(0, 229, 255, 0.2);
+    }
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    
+    .feature-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--light);
+    }
+    
+    .feature-card p {
+      color: #aaa;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 229, 255, 0.3);
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    
+    .btn-outline:hover {
+      background: var(--primary);
+      color: var(--dark);
+    }
+    
+    /* Stats Section */
+    .stats {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin: 4rem 0;
+      padding: 2rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+    }
+    
+    .stat-item {
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      color: #aaa;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    /* Footer */
+    footer {
+      background: var(--dark);
+      padding: 2rem;
+      text-align: center;
+      margin-top: auto;
+    }
+    
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .social-links a {
+      color: var(--light);
+      font-size: 1.5rem;
+      transition: color 0.3s ease;
+    }
+    
+    .social-links a:hover {
+      color: var(--primary);
+    }
+    
+    .copyright {
+      color: #777;
+      font-size: 0.9rem;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      nav ul {
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      
+      .hero h2 {
+        font-size: 2rem;
+      }
+      
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Media API Hub</h1>
-            <p class="subtitle">A collection of media download and search APIs</p>
-        </header>
-        
-        <div class="endpoint-container">
-            <!-- Music Search Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Music Search
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/search</span>
-                    </div>
-                    <p>Search for music tracks with metadata from YouTube.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">q or song</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Search query (e.g., "Shape of You" or "Ed Sheeran - Shape of You")</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /search?q=Shape+of+You<br>
-                            GET /search?song=Ed+Sheeran+-+Shape+of+You
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="searchQuery" placeholder="Enter song name or artist - song">
-                        <button onclick="testSearch()">Search</button>
-                        <div class="response" id="searchResponse"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- YouTube Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    YouTube Video Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/youtube</span>
-                    </div>
-                    <p>Download YouTube videos in highest quality.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid YouTube video URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /youtube?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL">
-                        <button onclick="testYoutube()">Download</button>
-                        <div class="response" id="youtubeResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- TikTok Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    TikTok Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/tiktok</span>
-                    </div>
-                    <p>Download TikTok videos without watermark.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid TikTok video URL (e.g., https://www.tiktok.com/@user/video/123456789)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /tiktok?url=https://www.tiktok.com/@user/video/123456789
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="tiktokUrl" placeholder="Enter TikTok URL">
-                        <button onclick="testTikTok()">Download</button>
-                        <div class="response" id="tiktokResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Facebook Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Facebook Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/facebook</span>
-                    </div>
-                    <p>Download videos from Facebook.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid Facebook video URL (e.g., https://www.facebook.com/watch/?v=123456789)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /facebook?url=https://www.facebook.com/watch/?v=123456789
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="facebookUrl" placeholder="Enter Facebook URL">
-                        <button onclick="testFacebook()">Download</button>
-                        <div class="response" id="facebookResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Lyrics Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Lyrics Finder
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/lyrics</span>
-                    </div>
-                    <p>Get lyrics for any song.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">song</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Song name or artist - song format (e.g., "Shape of You" or "Ed Sheeran - Shape of You")</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /lyrics?song=Shape+of+You<br>
-                            GET /lyrics?song=Ed+Sheeran+-+Shape+of+You
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="lyricsQuery" placeholder="Enter song name or artist - song">
-                        <button onclick="testLyrics()">Get Lyrics</button>
-                        <div class="response" id="lyricsResponse"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- GPT Chat Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Gemini AI Chat
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/gpt</span>
-                    </div>
-                    <p>Get AI-generated responses using Google's Gemini model.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">text or prompt</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Your question or prompt for the AI</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /gpt?text=Explain+quantum+computing+in+simple+terms<br>
-                            GET /gpt?prompt=Write+a+poem+about+the+ocean
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="gptPrompt" placeholder="Enter your prompt">
-                        <button onclick="testGPT()">Ask Gemini</button>
-                        <div class="response" id="gptResponse"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <footer>
-            <p>Media API Hub &copy; 2023 | All endpoints are rate limited to 100 requests per 15 minutes</p>
-        </footer>
+  <header>
+    <div class="logo">
+      <i class="fas fa-code logo-icon"></i>
+      <h1>Kish-MD API Hub</h1>
     </div>
     
-    <script>
-        async function testSearch() {
-            const query = document.getElementById('searchQuery').value.trim();
-            if (!query) {
-                alert('Please enter a search query');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('searchResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${data.error}</div>`;
-                } else {
-                    let html = `<div><strong>${data.count} results found:</strong></div>`;
-                    data.results.forEach(song => {
-                        html += `
-                            <div style="margin-top: 1rem; padding: 0.5rem; border-bottom: 1px solid #eee;">
-                                <div><strong>${song.title}</strong> by ${song.artist}</div>
-                                <div>Duration: ${song.duration} | Views: ${song.views}</div>
-                                <div><small>${song.url}</small></div>
-                            </div>
-                        `;
-                    });
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${error.message}</div>`;
-            }
-        }
+    <nav>
+      <ul>
+        <li><a href="#" class="active"><i class="fas fa-home"></i> Home</a></li>
+        <li><a href="#"><i class="fas fa-search"></i> Search API</a></li>
+        <li><a href="#"><i class="fas fa-music"></i> Lyrics API</a></li>
+        <li><a href="#"><i class="fas fa-download"></i> Downloaders</a></li>
+        <li><a href="#"><i class="fas fa-robot"></i> AI Chat</a></li>
+      </ul>
+    </nav>
+    
+    <div class="time-display">
+      <i class="fas fa-clock"></i>
+      <span id="live-time">Loading...</span>
+    </div>
+  </header>
+  
+  <main>
+    <section class="hero">
+      <h2>Powerful API Services at Your Fingertips</h2>
+      <p>Access our suite of high-performance APIs for music search, lyrics, video downloads, and AI chat. Built for developers who demand reliability and speed.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center;">
+        <a href="#features" class="btn">Explore Features</a>
+        <a href="#" class="btn btn-outline">API Documentation</a>
+      </div>
+    </section>
+    
+    <section id="features">
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>Music Search</h3>
+          <p>Search across thousands of music tracks with our powerful search API. Get comprehensive results including title, artist, duration and more.</p>
+          <a href="/search?q=example" class="btn">Try Search API</a>
+        </div>
         
-        function testYoutube() {
-            const url = document.getElementById('youtubeUrl').value.trim();
-            if (!url || !url.includes('youtube.com')) {
-                alert('Please enter a valid YouTube URL');
-                return;
-            }
-            window.open(`/youtube?url=${encodeURIComponent(url)}`, '_blank');
-        }
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-music"></i>
+          </div>
+          <h3>Lyrics Finder</h3>
+          <p>Get accurate lyrics for any song instantly. Our API connects to multiple sources to deliver the most complete lyrics database.</p>
+          <a href="/lyrics?text=example" class="btn">Try Lyrics API</a>
+        </div>
         
-        function testTikTok() {
-            const url = document.getElementById('tiktokUrl').value.trim();
-            if (!url || !url.includes('tiktok.com')) {
-                alert('Please enter a valid TikTok URL');
-                return;
-            }
-            window.open(`/tiktok?url=${encodeURIComponent(url)}`, '_blank');
-        }
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-download"></i>
+          </div>
+          <h3>Video Download</h3>
+          <p>Download videos from YouTube, TikTok, Facebook and more with our high-speed download API. Multiple formats supported.</p>
+          <a href="/youtube?url=example" class="btn">Try Downloader</a>
+        </div>
+      </div>
+      
+      <div class="features" style="margin-top: 2rem;">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-robot"></i>
+          </div>
+          <h3>AI Chat</h3>
+          <p>Integrate our powerful Gemini AI into your applications. Get human-like responses for any query with our chat API.</p>
+          <a href="/gpt?text=Hello" class="btn">Try AI Chat</a>
+        </div>
         
-        function testFacebook() {
-            const url = document.getElementById('facebookUrl').value.trim();
-            if (!url || !url.includes('facebook.com')) {
-                alert('Please enter a valid Facebook URL');
-                return;
-            }
-            window.open(`/facebook?url=${encodeURIComponent(url)}`, '_blank');
-        }
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>High Performance</h3>
+          <p>Our APIs are optimized for speed and reliability. Built with Node.js and Express for maximum throughput.</p>
+          <a href="#" class="btn">View Benchmarks</a>
+        </div>
         
-        async function testLyrics() {
-            const query = document.getElementById('lyricsQuery').value.trim();
-            if (!query) {
-                alert('Please enter a song name');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('lyricsResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/lyrics?song=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${data.error}</div>`;
-                } else {
-                    let html = `
-                        <div><strong>${data.title}</strong> by ${data.artist}</div>
-                        <div style="margin-top: 1rem; white-space: pre-line;">${data.lyrics}</div>
-                    `;
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${error.message}</div>`;
-            }
-        }
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Secure Access</h3>
+          <p>All API endpoints are protected with rate limiting and authentication to prevent abuse and ensure fair usage.</p>
+          <a href="#" class="btn">Security Info</a>
+        </div>
+      </div>
+    </section>
+    
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-number" id="api-calls">10K+</div>
+        <div class="stat-label">Daily API Calls</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="uptime">99.9%</div>
+        <div class="stat-label">Uptime</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="response-time">200ms</div>
+        <div class="stat-label">Avg Response</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number" id="endpoints">15+</div>
+        <div class="stat-label">Endpoints</div>
+      </div>
+    </div>
+  </main>
+  
+  <footer>
+    <div class="social-links">
+      <a href="#"><i class="fab fa-github"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fab fa-discord"></i></a>
+      <a href="#"><i class="fab fa-youtube"></i></a>
+    </div>
+    <p class="copyright">© 2025 Kish-MD API Hub. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Real-time clock
+    function updateTime() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+      document.getElementById('live-time').textContent = timeString;
+    }
+    
+    setInterval(updateTime, 1000);
+    updateTime();
+    
+    // Animated stats counter
+    function animateStats() {
+      const counters = [
+        { element: 'api-calls', target: 12543, suffix: '+' },
+        { element: 'uptime', target: 99.9, suffix: '%' },
+        { element: 'response-time', target: 187, suffix: 'ms' },
+        { element: 'endpoints', target: 18, suffix: '+' }
+      ];
+      
+      const duration = 2000; // Animation duration in ms
+      const steps = 50; // Number of steps
+      const stepTime = duration / steps;
+      
+      counters.forEach(counter => {
+        const element = document.getElementById(counter.element);
+        const start = 0;
+        const increment = (counter.target - start) / steps;
+        let current = start;
         
-        async function testGPT() {
-            const prompt = document.getElementById('gptPrompt').value.trim();
-            if (!prompt) {
-                alert('Please enter a prompt');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('gptResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/gpt?text=${encodeURIComponent(prompt)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `
-                        <div style="color: var(--danger)">
-                            <strong>Error:</strong> ${data.error}<br>
-                            ${data.details ? `<small>${data.details}</small>` : ''}
-                        </div>
-                    `;
-                } else {
-                    let html = `
-                        <div style="white-space: pre-line;"><strong>Response:</strong><br>${data.response}</div>
-                    `;
-                    if (data.tokens) {
-                        html += `<div style="margin-top: 1rem; font-size: 0.8rem; color: var(--gray)">
-                            Tokens used: ${data.tokens}
-                        </div>`;
-                    }
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `
-                    <div style="color: var(--danger)">
-                        <strong>Error:</strong> ${error.message}
-                    </div>
-                `;
-            }
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= counter.target) {
+            clearInterval(timer);
+            current = counter.target;
+          }
+          
+          if (counter.element === 'response-time') {
+            element.textContent = Math.floor(current) + counter.suffix;
+          } else if (counter.element === 'uptime') {
+            element.textContent = current.toFixed(1) + counter.suffix;
+          } else {
+            element.textContent = Math.floor(current) + counter.suffix;
+          }
+        }, stepTime);
+      });
+    }
+    
+    // Start animation when stats are visible
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          animateStats();
+          observer.unobserve(entry.target);
         }
-    </script>
+      });
+    }, { threshold: 0.5 });
+    
+    observer.observe(document.querySelector('.stats'));
+    
+    // Smooth scrolling for navigation
+    document.querySelectorAll('nav a').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        document.querySelectorAll('nav a').forEach(a => {
+          a.classList.remove('active');
+        });
+        this.classList.add('active');
+        
+        const targetId = this.getAttribute('href');
+        if (targetId.startsWith('#')) {
+          const targetElement = document.querySelector(targetId);
+          if (targetElement) {
+            window.scrollTo({
+              top: targetElement.offsetTop - 100,
+              behavior: 'smooth'
+            });
+          }
+        }
+      });
+    });
+  </script>
 </body>
 </html>
