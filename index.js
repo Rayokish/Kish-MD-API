@@ -19,7 +19,9 @@ const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Security Middleware
+// ======================
+// Middleware
+// ======================
 app.use(helmet());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || '*'
@@ -29,32 +31,19 @@ app.use(express.static("public", { maxAge: '1d' }));
 
 // Rate Limiting
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
-});
-app.use('/api/', apiLimiter);
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAuw9QCvV-MSYKGl1FLpDetJyKF7_5vj6s");
-const model = genAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
-  generationConfig: {
-    temperature: 0.3,
-    topP: 0.95,
-    topK: 64,
-    maxOutputTokens: 8192,
-  },
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Too many requests from this IP'
 });
 
+// ======================
 // Utility Functions
-const cleanTempFiles = async (filePath) => {
+// ======================
+const cleanTempFiles = (filePath) => {
   try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
   } catch (err) {
-    console.error('Error cleaning temp file:', err);
+    console.error('Cleanup error:', err);
   }
 };
 
@@ -67,107 +56,99 @@ const validateUrl = (url, domain) => {
   }
 };
 
+const formatDuration = (seconds) => {
+  const date = new Date(0);
+  date.setSeconds(seconds);
+  return date.toISOString().substr(11, 8).replace(/^00:/, '');
+};
+
+// ======================
 // Routes
+// ======================
+
+// Homepage
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// GPT Chat Endpoint
-app.get("/gpt", async (req, res) => {
-  const prompt = req.query.text;
-  if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+// NEW: Music Search Endpoint (Metadata only)
+app.get('/search', apiLimiter, async (req, res) => {
+  const query = req.query.q || req.query.song;
+  if (!query) return res.status(400).json({ error: 'Missing search query' });
 
   try {
-    const chat = model.startChat({ history: [], generationConfig: {} });
-    const result = await chat.sendMessage(prompt);
-    const response = await result.response;
-    res.json({ response: response.text() });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch GPT response" });
-  }
-});
+    const results = await yts(query);
+    if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
 
-// Enhanced Audio Download Endpoint
-app.get('/play', async (req, res) => {
-  const song = req.query.song;
-  if (!song) {
-    return res.status(400).json({ error: 'Missing song parameter' });
-  }
+    const songs = results.videos.map(video => ({
+      id: video.videoId,
+      title: video.title,
+      artist: video.author.name,
+      duration: video.timestamp || formatDuration(video.duration.seconds),
+      thumbnail: video.thumbnail,
+      url: video.url,
+      views: video.views,
+      uploadedAt: video.ago,
+      provider: 'YouTube'
+    }));
 
-  const tempFileName = `temp_${Date.now()}.mp3`;
-  const tempFilePath = path.join(__dirname, tempFileName);
-
-  try {
-    // Search YouTube
-    const results = await yts(song);
-    if (!results.videos.length) {
-      return res.status(404).json({ error: 'Song not found' });
-    }
-
-    const video = results.videos[0];
-    const videoUrl = video.url;
-    const cleanTitle = sanitizeFilename(video.title);
-
-    // Download audio
-    await youtubedl(videoUrl, {
-      extractAudio: true,
-      audioFormat: 'mp3',
-      output: tempFilePath,
-      quiet: true,
-    });
-
-    // Stream response
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.setHeader('Content-Disposition', `attachment; filename="${cleanTitle}.mp3"`);
-    
-    const readStream = fs.createReadStream(tempFilePath);
-    readStream.pipe(res);
-
-    // Cleanup
-    readStream.on('close', () => cleanTempFiles(tempFilePath));
-    readStream.on('error', () => cleanTempFiles(tempFilePath));
-
+    res.json({ count: songs.length, results: songs });
   } catch (error) {
-    console.error('Play error:', error);
-    cleanTempFiles(tempFilePath);
-    res.status(500).json({ error: 'Failed to process song' });
+    console.error('Search error:', error);
+    res.status(500).json({ error: 'Search failed' });
   }
 });
 
-// Enhanced Media Download Endpoints
-const createMediaDownloader = (platform) => async (req, res) => {
+// TikTok Downloader
+app.get("/tiktok", apiLimiter, async (req, res) => {
   const url = req.query.url;
-  if (!url || !validateUrl(url, platform)) {
-    return res.status(400).json({ error: `Invalid ${platform} URL` });
+  if (!url || !validateUrl(url, 'tiktok')) {
+    return res.status(400).json({ error: "Invalid TikTok URL" });
   }
 
-  const tempFile = path.join(__dirname, `temp_${platform}_${Date.now()}.mp4`);
+  const tempFile = path.join(__dirname, `temp_tt_${Date.now()}.mp4`);
 
   try {
     await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
-    
-    if (!fs.existsSync(tempFile)) {
-      throw new Error("Download failed");
-    }
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
 
-    res.download(tempFile, `${platform}_${Date.now()}.mp4`, (err) => {
+    res.download(tempFile, `tiktok_${Date.now()}.mp4`, (err) => {
       cleanTempFiles(tempFile);
-      if (err) console.error(`${platform} download error:`, err);
+      if (err) console.error('TikTok download error:', err);
     });
-
-  } catch (e) {
-    console.error(`${platform} error:`, e);
+  } catch (error) {
     cleanTempFiles(tempFile);
-    res.status(500).json({ error: `${platform} download failed` });
+    console.error('TikTok error:', error);
+    res.status(500).json({ error: "TikTok download failed" });
   }
-};
+});
 
-app.get("/tiktok", createMediaDownloader('tiktok'));
-app.get("/facebook", createMediaDownloader('facebook'));
+// Facebook Downloader
+app.get("/facebook", apiLimiter, async (req, res) => {
+  const url = req.query.url;
+  if (!url || !validateUrl(url, 'facebook')) {
+    return res.status(400).json({ error: "Invalid Facebook URL" });
+  }
 
-// YouTube Video Download Endpoint
-app.get("/youtube", async (req, res) => {
+  const tempFile = path.join(__dirname, `temp_fb_${Date.now()}.mp4`);
+
+  try {
+    await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
+    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
+
+    res.download(tempFile, `facebook_${Date.now()}.mp4`, (err) => {
+      cleanTempFiles(tempFile);
+      if (err) console.error('Facebook download error:', err);
+    });
+  } catch (error) {
+    cleanTempFiles(tempFile);
+    console.error('Facebook error:', error);
+    res.status(500).json({ error: "Facebook download failed" });
+  }
+});
+
+// YouTube Video Downloader
+app.get("/youtube", apiLimiter, async (req, res) => {
   const url = req.query.url;
   if (!url || !validateUrl(url, 'youtube')) {
     return res.status(400).json({ error: "Invalid YouTube URL" });
@@ -178,77 +159,51 @@ app.get("/youtube", async (req, res) => {
     const title = sanitizeFilename(info.videoDetails.title);
     
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
-    ytdl(url, {
-      quality: 'highest',
-      filter: format => format.container === 'mp4',
-    }).pipe(res);
-  } catch (e) {
-    console.error("YouTube Error:", e);
+    ytdl(url, { quality: 'highest', filter: 'audioandvideo' }).pipe(res);
+  } catch (error) {
+    console.error('YouTube error:', error);
     res.status(500).json({ error: "YouTube download failed" });
   }
 });
 
-// Enhanced Lyrics Endpoint
-app.get('/lyrics', async (req, res) => {
+// Lyrics Endpoint
+app.get('/lyrics', apiLimiter, async (req, res) => {
   const query = req.query.song;
-  if (!query) {
-    return res.status(400).json({ error: 'Missing song parameter' });
-  }
+  if (!query) return res.status(400).json({ error: 'Missing song parameter' });
 
   try {
-    // Try lyrics.ovh first
     const [artist, title] = query.includes('-') ? 
       query.split('-').map(s => s.trim()) : 
       [null, query.trim()];
     
-    if (artist) {
-      const response = await axios.get(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`, {
-        timeout: 5000
-      });
-      
-      if (response.data?.lyrics) {
-        return res.json({
-          artist,
-          title,
-          lyrics: response.data.lyrics.trim(),
-          source: 'lyrics.ovh'
-        });
-      }
-    }
-
-    // Fallback to web scraping
-    const searchResponse = await axios.get(`https://www.google.com/search?q=${encodeURIComponent(query + " lyrics")}`, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
+    const response = await axios.get(
+      `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(title)}`,
+      { timeout: 5000 }
+    );
     
-    const $ = cheerio.load(searchResponse.data);
-    const lyrics = $('div[jsname="WbKHeb"]').text() || 
-                   $('div[class*="Lyrics__Container"]').text();
-    
-    if (lyrics) {
+    if (response.data?.lyrics) {
       return res.json({
         artist: artist || 'Unknown',
-        title: title || query,
-        lyrics: lyrics.trim(),
-        source: 'web'
+        title,
+        lyrics: response.data.lyrics.trim()
       });
     }
-
-    res.status(404).json({ error: 'Lyrics not found' });
-  } catch (err) {
-    console.error('Lyrics error:', err);
+    return res.status(404).json({ error: 'Lyrics not found' });
+  } catch (error) {
+    console.error('Lyrics error:', error);
     res.status(500).json({ error: 'Failed to fetch lyrics' });
   }
 });
 
-// Error Handling Middleware
-app.use((err, req, res, next) => {
-  console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-// Start server
+// ======================
+// Server Start
+// ======================
 app.listen(port, () => {
   console.log(`✅ Server running on http://localhost:${port}`);
-  console.log(`⚡ Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`⚡ Endpoints:`);
+  console.log(`   - /search?q= [GET] Music search`);
+  console.log(`   - /tiktok?url= [GET] TikTok download`);
+  console.log(`   - /facebook?url= [GET] Facebook download`);
+  console.log(`   - /youtube?url= [GET] YouTube download`);
+  console.log(`   - /lyrics?song= [GET] Get lyrics`);
 });
