@@ -21,7 +21,7 @@ app.get("/", (req, res) => {
 });
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI("AIzaSyAuw9QCvV-MSYKGl1FLpDetJyKF7_5vj6s");
 const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
   generationConfig: {
