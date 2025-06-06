@@ -92,11 +92,14 @@ app.get('/search', apiLimiter, async (req, res) => {
     const results = await yts(query);
     if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
 
-    // Build the array with audio download links
+    // Your real API domain here:
+    const yourDomain = 'https://kish-md-api.onrender.com';
+
+    // Build the array with audio download links pointing to your /youtube endpoint
     const songs = await Promise.all(results.videos.slice(0, 5).map(async (video) => {
       return {
         title: video.title,
-        audio: `https://your-downloader-api.com/download?url=${encodeURIComponent(video.url)}`
+        audio: `${yourDomain}/youtube?url=${encodeURIComponent(video.url)}`
       };
     }));
 
@@ -113,15 +116,15 @@ app.get('/lyrics', apiLimiter, async (req, res) => {
   if (!query) return res.status(400).json({ error: 'Missing song parameter' });
 
   try {
-    const [artist, title] = query.includes('-') ? 
-      query.split('-').map(s => s.trim()) : 
+    const [artist, title] = query.includes('-') ?
+      query.split('-').map(s => s.trim()) :
       [null, query.trim()];
-    
+
     const response = await axios.get(
       `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(title)}`,
       { timeout: 5000 }
     );
-    
+
     if (response.data?.lyrics) {
       return res.json({
         artist: artist || 'Unknown',
@@ -194,7 +197,7 @@ app.get("/youtube", apiLimiter, async (req, res) => {
   try {
     const info = await ytdl.getInfo(url);
     const title = sanitizeFilename(info.videoDetails.title);
-    
+
     res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
     ytdl(url, { quality: 'highest', filter: 'audioandvideo' }).pipe(res);
   } catch (error) {
@@ -209,7 +212,7 @@ app.get("/gpt", apiLimiter, async (req, res) => {
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   try {
-    const chat = model.startChat({ 
+    const chat = model.startChat({
       history: [],
       generationConfig: {
         temperature: 0.3,
@@ -220,16 +223,16 @@ app.get("/gpt", apiLimiter, async (req, res) => {
     });
     const result = await chat.sendMessage(prompt);
     const response = await result.response;
-    
-    res.json({ 
+
+    res.json({
       response: response.text(),
       tokens: response.usageMetadata?.totalTokenCount || 'unknown'
     });
   } catch (err) {
     console.error('GPT Error:', err);
-    res.status(500).json({ 
+    res.status(500).json({
       error: "Failed to fetch GPT response",
-      details: err.message 
+      details: err.message
     });
   }
 });
