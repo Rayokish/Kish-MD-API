@@ -36,6 +36,18 @@ const apiLimiter = rateLimit({
   message: 'Too many requests from this IP'
 });
 
+// Initialize Gemini AI
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAuw9QCvV-MSYKGl1FLpDetJyKF7_5vj6s");
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    temperature: 0.3,
+    topP: 0.95,
+    topK: 64,
+    maxOutputTokens: 8192,
+  },
+});
+
 // ======================
 // Utility Functions
 // ======================
@@ -71,7 +83,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// NEW: Music Search Endpoint (Metadata only)
+// Music Search Endpoint
 app.get('/search', apiLimiter, async (req, res) => {
   const query = req.query.q || req.query.song;
   if (!query) return res.status(400).json({ error: 'Missing search query' });
@@ -195,15 +207,40 @@ app.get('/lyrics', apiLimiter, async (req, res) => {
   }
 });
 
+// GPT Chat Endpoint
+app.get("/gpt", apiLimiter, async (req, res) => {
+  const prompt = req.query.text || req.query.prompt;
+  if (!prompt) return res.status(400).json({ error: "Prompt is required" });
+
+  try {
+    const chat = model.startChat({ 
+      history: [],
+      generationConfig: {
+        temperature: 0.3,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+      }
+    });
+    const result = await chat.sendMessage(prompt);
+    const response = await result.response;
+    
+    res.json({ 
+      response: response.text(),
+      tokens: response.usageMetadata?.totalTokenCount || 'unknown'
+    });
+  } catch (err) {
+    console.error('GPT Error:', err);
+    res.status(500).json({ 
+      error: "Failed to fetch GPT response",
+      details: err.message 
+    });
+  }
+});
+
 // ======================
 // Server Start
 // ======================
 app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
-  console.log(`⚡ Endpoints:`);
-  console.log(`   - /search?q= [GET] Music search`);
-  console.log(`   - /tiktok?url= [GET] TikTok download`);
-  console.log(`   - /facebook?url= [GET] Facebook download`);
-  console.log(`   - /youtube?url= [GET] YouTube download`);
-  console.log(`   - /lyrics?song= [GET] Get lyrics`);
+  console.log(`✅ Server running on port ${port}`);
 });
