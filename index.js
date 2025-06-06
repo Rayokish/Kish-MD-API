@@ -3,7 +3,6 @@ const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
 const yts = require("yt-search");
-const youtubedl = require('youtube-dl-exec');
 const ytdl = require("ytdl-core");
 const fs = require("fs");
 const path = require("path");
@@ -18,6 +17,9 @@ const sanitizeFilename = require("sanitize-filename");
 const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
+
+// Ensure system binaries are in PATH
+process.env.PATH = `${process.env.PATH}:/usr/local/bin:/usr/bin:/bin`;
 
 app.set('trust proxy', 1);
 
@@ -110,63 +112,25 @@ app.get('/search', apiLimiter, async (req, res) => {
   }
 });
 
-// YouTube Audio Downloader (Improved)
+// YouTube Audio Downloader (using yt-dlp)
 app.get('/youtube', apiLimiter, async (req, res) => {
   const videoUrl = req.query.url;
   if (!videoUrl || !ytdl.validateURL(videoUrl)) {
     return res.status(400).json({ error: '❌ Invalid YouTube URL' });
   }
 
-  try {
-    // First try with ytdl-core
-    const info = await ytdl.getInfo(videoUrl);
-    const title = sanitizeFilename(info.videoDetails.title);
-    
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    const audioStream = ytdl(videoUrl, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-      highWaterMark: 1 << 25,
-    });
-
-    // Error handling for the stream
-    audioStream.on('error', async (err) => {
-      console.error('ytdl-core failed, trying fallback:', err);
-      await tryYoutubeDlFallback(videoUrl, res, title);
-    });
-
-    // Timeout handling
-    const timeout = setTimeout(() => {
-      audioStream.destroy();
-      if (!res.headersSent) {
-        res.status(504).json({ error: '❌ Request timeout' });
-      }
-    }, 30000);
-
-    audioStream.pipe(res);
-    res.on('finish', () => clearTimeout(timeout));
-
-  } catch (err) {
-    console.error("YouTube error (primary):", err);
-    await tryYoutubeDlFallback(videoUrl, res);
-  }
-});
-
-// Fallback YouTube Downloader
-async function tryYoutubeDlFallback(videoUrl, res, title = 'audio') {
   const tempFile = path.join(__dirname, `temp_yt_${Date.now()}.mp3`);
-  
+
   try {
-    await youtubedl(videoUrl, {
-      extractAudio: true,
-      audioFormat: 'mp3',
-      output: tempFile,
-    });
+    // Get video info first for metadata
+    const info = await ytdl.getInfo(videoUrl).catch(() => null);
+    const title = info ? sanitizeFilename(info.videoDetails.title) : 'audio';
+
+    // Download using yt-dlp (much more reliable)
+    await execAsync(`yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${videoUrl}"`);
 
     if (!fs.existsSync(tempFile)) {
-      throw new Error('Fallback download failed');
+      throw new Error('Download failed - no file created');
     }
 
     res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
@@ -178,20 +142,25 @@ async function tryYoutubeDlFallback(videoUrl, res, title = 'audio') {
     fileStream.on('end', () => cleanTempFiles(tempFile));
     fileStream.on('error', () => cleanTempFiles(tempFile));
 
-  } catch (fallbackErr) {
-    console.error("YouTube fallback error:", fallbackErr);
+  } catch (err) {
+    console.error("YouTube download error:", err.message);
     cleanTempFiles(tempFile);
     
     let errorMsg = '❌ Failed to fetch audio stream';
-    if (fallbackErr.message.includes('Private video')) {
-      errorMsg = '❌ Video is private';
-    } else if (fallbackErr.message.includes('Age restricted')) {
+    if (err.message.includes('Video unavailable')) {
+      errorMsg = '❌ Video is unavailable (private/removed)';
+    } else if (err.message.includes('Age restricted')) {
       errorMsg = '❌ Age-restricted video';
+    } else if (err.message.includes('This video is unavailable')) {
+      errorMsg = '❌ Video unavailable in your region';
     }
     
-    res.status(500).json({ error: errorMsg });
+    res.status(500).json({ 
+      error: errorMsg,
+      details: err.message
+    });
   }
-}
+});
 
 // Lyrics Endpoint
 app.get('/lyrics', apiLimiter, async (req, res) => {
@@ -306,5 +275,5 @@ app.get("/gpt", apiLimiter, async (req, res) => {
 // ======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-  console.log(`ℹ️  YouTube download methods available: ytdl-core + youtube-dl-exec fallback`);
+  console.log(`ℹ️  YouTube downloads using yt-dlp`);
 });
