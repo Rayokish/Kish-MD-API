@@ -92,19 +92,15 @@ app.get('/search', apiLimiter, async (req, res) => {
     const results = await yts(query);
     if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
 
-    const songs = results.videos.map(video => ({
-      id: video.videoId,
-      title: video.title,
-      artist: video.author.name,
-      duration: video.timestamp || formatDuration(video.duration.seconds),
-      thumbnail: video.thumbnail,
-      url: video.url,
-      views: video.views,
-      uploadedAt: video.ago,
-      provider: 'YouTube'
+    // Build the array with audio download links
+    const songs = await Promise.all(results.videos.slice(0, 5).map(async (video) => {
+      return {
+        title: video.title,
+        audio: `https://your-downloader-api.com/download?url=${encodeURIComponent(video.url)}`
+      };
     }));
 
-    res.json({ count: songs.length, results: songs });
+    res.json(songs);
   } catch (error) {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Search failed' });
