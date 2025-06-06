@@ -54,28 +54,51 @@ app.get("/gpt", async (req, res) => {
 });
 
 // Improved Play Endpoint (Audio Download)
-app.get("/play", async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Please provide a song name" });
+app.get('/play', async (req, res) => {
+  const song = req.query.song;
+  if (!song) {
+    return res.status(400).json({ error: 'Missing `song` query parameter' });
+  }
 
   try {
-    const { videos } = await yts(query);
-    if (!videos || !videos.length) {
-      return res.status(404).json({ error: "No results found" });
+    // Step 1: Search YouTube
+    const results = await yts(song);
+    if (!results.videos.length) {
+      return res.status(404).json({ error: 'Song not found on YouTube' });
     }
 
-    const tempFile = `./temp_${Date.now()}.mp3`;
-    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
+    const videoUrl = results.videos[0].url;
+    const tempFileName = `temp_${Date.now()}.mp3`;
+    const tempFilePath = path.join(__dirname, tempFileName);
 
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `${videos[0].title}.mp3`, (err) => {
-      if (err) console.error("Download Error:", err);
-      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    // Step 2: Download audio with youtube-dl-exec
+    await youtubedl(videoUrl, {
+      extractAudio: true,
+      audioFormat: 'mp3',
+      output: tempFilePath,
+      quiet: true,
     });
-  } catch (e) {
-    console.error("Download Error:", e);
-    res.status(500).json({ error: e.message });
+
+    // Step 3: Stream the mp3 file to client
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${song}.mp3"`);
+
+    const readStream = fs.createReadStream(tempFilePath);
+    readStream.pipe(res);
+
+    readStream.on('close', () => {
+      // Clean up temp file after sending
+      fs.unlink(tempFilePath, () => {});
+    });
+
+    readStream.on('error', (err) => {
+      console.error('Stream error:', err);
+      res.status(500).json({ error: 'Error streaming audio file' });
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to download or process the song' });
   }
 });
 
