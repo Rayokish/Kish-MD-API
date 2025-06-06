@@ -7,11 +7,18 @@ const { exec } = require("child_process");
 const util = require("util");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const cors = require("cors");
 
 const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static("public"));
+
+// Routes
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
@@ -27,10 +34,8 @@ const model = genAI.getGenerativeModel({
   },
 });
 
-app.use(express.json());
-
-app.post("/gpt", async (req, res) => {
-  const prompt = req.body.prompt;
+app.get("/gpt", async (req, res) => {
+  const prompt = req.query.text;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   try {
@@ -50,7 +55,9 @@ app.get("/play", async (req, res) => {
 
   try {
     const { videos } = await yts(query);
-    if (!videos.length) return res.status(404).json({ error: "No results found" });
+    if (!videos || !videos.length) {
+      return res.status(404).json({ error: "No results found", query });
+    }
 
     const tempFile = `./temp_${Date.now()}.mp3`;
     await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
@@ -65,19 +72,16 @@ app.get("/play", async (req, res) => {
 });
 
 app.get("/youtube", async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Missing query parameter" });
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: "Missing YouTube URL" });
 
   try {
-    const { videos } = await yts(query);
-    if (!videos.length) return res.status(404).json({ error: "No results found" });
-
-    const tempFile = `./temp_${Date.now()}.mp3`;
-    await execAsync(`yt-dlp -x --audio-format mp3 -o "${tempFile}" ${videos[0].url}`);
+    const tempFile = `./temp_${Date.now()}.mp4`;
+    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
 
     if (!fs.existsSync(tempFile)) throw new Error("Download failed");
 
-    res.download(tempFile, `${videos[0].title}.mp3`, () => fs.unlinkSync(tempFile));
+    res.download(tempFile, `youtube_${Date.now()}.mp4`, () => fs.unlinkSync(tempFile));
   } catch (e) {
     console.error("Download Error:", e);
     res.status(500).json({ error: e.message });
@@ -85,12 +89,13 @@ app.get("/youtube", async (req, res) => {
 });
 
 app.get("/tiktok", async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Missing TikTok URL" });
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: "Missing TikTok URL" });
+  if (!url.startsWith("http")) return res.status(400).json({ error: "Invalid URL format" });
 
   try {
     const tempFile = `./temp_${Date.now()}.mp4`;
-    await execAsync(`yt-dlp -o "${tempFile}" ${query}`);
+    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
 
     if (!fs.existsSync(tempFile)) throw new Error("Download failed");
 
@@ -102,12 +107,13 @@ app.get("/tiktok", async (req, res) => {
 });
 
 app.get("/facebook", async (req, res) => {
-  const query = req.query.q;
-  if (!query) return res.status(400).json({ error: "Missing Facebook URL" });
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: "Missing Facebook URL" });
+  if (!url.startsWith("http")) return res.status(400).json({ error: "Invalid URL format" });
 
   try {
     const tempFile = `./temp_${Date.now()}.mp4`;
-    await execAsync(`yt-dlp -o "${tempFile}" ${query}`);
+    await execAsync(`yt-dlp -o "${tempFile}" ${url}`);
 
     if (!fs.existsSync(tempFile)) throw new Error("Download failed");
 
@@ -119,8 +125,8 @@ app.get("/facebook", async (req, res) => {
 });
 
 app.get("/lyrics", async (req, res) => {
-  const text = req.query.q;
-  if (!text) return res.status(400).json({ error: "Missing query" });
+  const text = req.query.text;
+  if (!text) return res.status(400).json({ error: "Missing song name" });
 
   try {
     const searchUrl = `https://genius.com/api/search/song?page=1&q=${encodeURIComponent(text)}`;
