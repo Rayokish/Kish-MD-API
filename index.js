@@ -189,23 +189,20 @@ app.get("/facebook", apiLimiter, async (req, res) => {
   }
 });
 
-// YouTube Video Downloader
-app.get("/youtube", apiLimiter, async (req, res) => {
-  const url = req.query.url;
-  if (!url || !validateUrl(url, 'youtube')) {
-    return res.status(400).json({ error: "Invalid YouTube URL" });
-  }
+///youtube endpoint
+app.get('/youtube', async (req, res) => {
+  const videoUrl = req.query.url;
+  if (!videoUrl) return res.status(400).json({ error: 'Missing url parameter' });
 
-  try {
-    const info = await ytdl.getInfo(url);
-    const title = sanitizeFilename(info.videoDetails.title);
+  const stream = ytdl(videoUrl, {
+    filter: 'audioonly',
+    quality: 'highestaudio',
+    highWaterMark: 1 << 25,
+  });
 
-    res.header('Content-Disposition', `attachment; filename="${title}.mp4"`);
-    ytdl(url, { quality: 'highest', filter: 'audioandvideo' }).pipe(res);
-  } catch (error) {
-    console.error('YouTube error:', error);
-    res.status(500).json({ error: "YouTube download failed" });
-  }
+  res.setHeader('Content-Disposition', 'attachment; filename="audio.mp3"');
+  res.setHeader('Content-Type', 'audio/mpeg');
+  stream.pipe(res);
 });
 
 // GPT Chat Endpoint
