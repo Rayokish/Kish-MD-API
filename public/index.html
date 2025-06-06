@@ -4,124 +4,116 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kish-MD API</title>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
       margin: 0;
-      padding: 0;
-      background: #121212;
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #0f0f0f, #1f1f1f);
       color: #fff;
-      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-    header {
-      background: #1f1f1f;
-      padding: 2rem;
+    header, footer {
       text-align: center;
+      padding: 2rem 1rem;
+      background-color: #121212;
     }
     header h1 {
-      margin: 0;
-      font-size: 3rem;
+      font-size: 2.5rem;
       color: #00ffe5;
     }
     header p {
-      font-size: 1.2rem;
       color: #bbb;
     }
     .container {
+      flex: 1;
       padding: 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .endpoints {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 1.5rem;
-      margin-top: 2rem;
+      max-width: 1000px;
+      margin: auto;
     }
     .endpoint {
-      background: #1e1e1e;
+      background: #1f1f1f;
       padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 255, 229, 0.2);
       text-align: center;
     }
-    .endpoint h3 {
-      margin: 0;
-      font-size: 1.5rem;
+    .endpoint h2 {
       color: #00ffe5;
+      margin-bottom: 0.5rem;
     }
     .endpoint p {
-      font-size: 1rem;
       color: #ccc;
+      font-size: 0.95rem;
     }
     .endpoint a {
       display: inline-block;
       margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background: #00ffe5;
+      padding: 0.6rem 1.2rem;
+      background-color: #00ffe5;
       color: #121212;
-      text-decoration: none;
+      font-weight: bold;
       border-radius: 5px;
-      font-weight: 500;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
     }
     .endpoint a:hover {
-      background: #00e0c1;
+      background-color: #00ccb3;
     }
     footer {
-      background: #1f1f1f;
-      padding: 1rem;
-      text-align: center;
       font-size: 0.9rem;
-      color: #bbb;
+      color: #777;
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Kish-MD API</h1>
-    <p>Powerful endpoints for music, video, lyrics, and AI chat</p>
-  </header>
+<header>
+  <h1>Kish-MD API</h1>
+  <p>Powerful API endpoints for your bot and automation needs</p>
+</header>
 
-  <div class="container">
-    <section class="endpoints">
-      <div class="endpoint">
-        <h3>🎵 /play</h3>
-        <p>Download audio from YouTube by song name</p>
-        <a href="/play?text=believer">Try it</a>
-      </div>
-      <div class="endpoint">
-        <h3>🎤 /lyrics</h3>
-        <p>Get song lyrics by title</p>
-        <a href="/lyrics?text=perfect">Try it</a>
-      </div>
-      <div class="endpoint">
-        <h3>🎥 /tiktok</h3>
-        <p>Download TikTok videos</p>
-        <a href="/tiktok?url=https://vm.tiktok.com/xyz">Try it</a>
-      </div>
-      <div class="endpoint">
-        <h3>📘 /facebook</h3>
-        <p>Download Facebook videos</p>
-        <a href="/facebook?url=https://fb.com/video123">Try it</a>
-      </div>
-      <div class="endpoint">
-        <h3>▶️ /youtube</h3>
-        <p>Download YouTube videos</p>
-        <a href="/youtube?url=https://youtu.be/xyz">Try it</a>
-      </div>
-      <div class="endpoint">
-        <h3>💬 /gpt</h3>
-        <p>Chat with Gemini AI</p>
-        <a href="/gpt">Try it</a>
-      </div>
-    </section>
+<div class="container">
+  <div class="endpoint">
+    <h2>🎵 /play</h2>
+    <p>Download MP3 audio from YouTube by song name.</p>
+    <a href="/play?text=believer">Try /play</a>
   </div>
+  <div class="endpoint">
+    <h2>🎤 /lyrics</h2>
+    <p>Get song lyrics from Genius.com</p>
+    <a href="/lyrics?text=perfect">Try /lyrics</a>
+  </div>
+  <div class="endpoint">
+    <h2>🎥 /tiktok</h2>
+    <p>Download TikTok videos using yt-dlp</p>
+    <a href="/tiktok?url=https://vm.tiktok.com/xyz">Try /tiktok</a>
+  </div>
+  <div class="endpoint">
+    <h2>📘 /facebook</h2>
+    <p>Download Facebook videos using yt-dlp</p>
+    <a href="/facebook?url=https://fb.com/video123">Try /facebook</a>
+  </div>
+  <div class="endpoint">
+    <h2>▶️ /youtube</h2>
+    <p>Download YouTube videos using yt-dlp</p>
+    <a href="/youtube?url=https://youtu.be/xyz">Try /youtube</a>
+  </div>
+  <div class="endpoint">
+    <h2>💬 /gpt</h2>
+    <p>Chat with Gemini AI</p>
+    <a href="/gpt?text=Hello+Gemini">Try /gpt</a>
+  </div>
+</div>
 
-  <footer>
-    <p>&copy; 2025 Kish-MD API | Built with ❤️ by Kish</p>
-  </footer>
+<footer>
+  <p>&copy; 2025 Kish-MD API | Built with ❤️ by Kish</p>
+</footer>
 
 </body>
 </html>
