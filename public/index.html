@@ -1,592 +1,126 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media API Hub</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4361ee;
-            --secondary: #3a0ca3;
-            --accent: #f72585;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --success: #4cc9f0;
-            --warning: #f8961e;
-            --danger: #ef233c;
-            --gray: #6c757d;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f5f7fa;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .subtitle {
-            color: var(--gray);
-            font-size: 1.1rem;
-            margin-bottom: 1rem;
-        }
-        
-        .endpoint-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-top: 2rem;
-        }
-        
-        .endpoint-card {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .endpoint-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-        
-        .card-header {
-            background-color: var(--primary);
-            color: white;
-            padding: 1rem;
-            font-weight: 500;
-        }
-        
-        .card-body {
-            padding: 1.5rem;
-        }
-        
-        .method {
-            display: inline-block;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            margin-right: 0.5rem;
-        }
-        
-        .get {
-            background-color: var(--success);
-            color: white;
-        }
-        
-        .post {
-            background-color: var(--accent);
-            color: white;
-        }
-        
-        .path {
-            font-family: monospace;
-            background-color: #f8f9fa;
-            padding: 0.5rem;
-            border-radius: 4px;
-            display: block;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-        
-        .param {
-            margin-bottom: 1rem;
-        }
-        
-        .param-name {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        
-        .param-type {
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        .param-desc {
-            margin-top: 0.25rem;
-            font-size: 0.9rem;
-        }
-        
-        .example {
-            margin-top: 1.5rem;
-        }
-        
-        .example-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--secondary);
-        }
-        
-        .example-code {
-            background-color: #2b2d42;
-            color: #f8f9fa;
-            padding: 1rem;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-        }
-        
-        .try-it {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            border-left: 4px solid var(--primary);
-        }
-        
-        .try-it-title {
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-        
-        input[type="text"] {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-family: inherit;
-            margin-bottom: 0.5rem;
-        }
-        
-        button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: background-color 0.3s ease;
-        }
-        
-        button:hover {
-            background-color: var(--secondary);
-        }
-        
-        .response {
-            margin-top: 1rem;
-            padding: 1rem;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            max-height: 300px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e0e0e0;
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .endpoint-container {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Media API Home</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: #4CAF50;
+    }
+
+    .endpoint {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 70%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .result {
+      margin-top: 10px;
+      font-size: 0.9em;
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      word-wrap: break-word;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Media API Hub</h1>
-            <p class="subtitle">A collection of media download and search APIs</p>
-        </header>
-        
-        <div class="endpoint-container">
-            <!-- Music Search Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Music Search
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/search</span>
-                    </div>
-                    <p>Search for music tracks with metadata from YouTube.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">q or song</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Search query (e.g., "Shape of You" or "Ed Sheeran - Shape of You")</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /search?q=Shape+of+You<br>
-                            GET /search?song=Ed+Sheeran+-+Shape+of+You
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="searchQuery" placeholder="Enter song name or artist - song">
-                        <button onclick="testSearch()">Search</button>
-                        <div class="response" id="searchResponse"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- YouTube Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    YouTube Video Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/youtube</span>
-                    </div>
-                    <p>Download YouTube videos in highest quality.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid YouTube video URL (e.g., https://www.youtube.com/watch?v=dQw4w9WgXcQ)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /youtube?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="youtubeUrl" placeholder="Enter YouTube URL">
-                        <button onclick="testYoutube()">Download</button>
-                        <div class="response" id="youtubeResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- TikTok Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    TikTok Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/tiktok</span>
-                    </div>
-                    <p>Download TikTok videos without watermark.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid TikTok video URL (e.g., https://www.tiktok.com/@user/video/123456789)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /tiktok?url=https://www.tiktok.com/@user/video/123456789
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="tiktokUrl" placeholder="Enter TikTok URL">
-                        <button onclick="testTikTok()">Download</button>
-                        <div class="response" id="tiktokResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Facebook Downloader -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Facebook Downloader
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/facebook</span>
-                    </div>
-                    <p>Download videos from Facebook.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">url</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Valid Facebook video URL (e.g., https://www.facebook.com/watch/?v=123456789)</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /facebook?url=https://www.facebook.com/watch/?v=123456789
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="facebookUrl" placeholder="Enter Facebook URL">
-                        <button onclick="testFacebook()">Download</button>
-                        <div class="response" id="facebookResponse">
-                            Note: This will directly download the video file.
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Lyrics Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Lyrics Finder
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/lyrics</span>
-                    </div>
-                    <p>Get lyrics for any song.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">song</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Song name or artist - song format (e.g., "Shape of You" or "Ed Sheeran - Shape of You")</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /lyrics?song=Shape+of+You<br>
-                            GET /lyrics?song=Ed+Sheeran+-+Shape+of+You
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="lyricsQuery" placeholder="Enter song name or artist - song">
-                        <button onclick="testLyrics()">Get Lyrics</button>
-                        <div class="response" id="lyricsResponse"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- GPT Chat Endpoint -->
-            <div class="endpoint-card">
-                <div class="card-header">
-                    Gemini AI Chat
-                </div>
-                <div class="card-body">
-                    <div>
-                        <span class="method get">GET</span>
-                        <span>/gpt</span>
-                    </div>
-                    <p>Get AI-generated responses using Google's Gemini model.</p>
-                    
-                    <div class="param">
-                        <div class="param-name">text or prompt</div>
-                        <div class="param-type">string (required)</div>
-                        <div class="param-desc">Your question or prompt for the AI</div>
-                    </div>
-                    
-                    <div class="example">
-                        <div class="example-title">Example Request</div>
-                        <div class="example-code">
-                            GET /gpt?text=Explain+quantum+computing+in+simple+terms<br>
-                            GET /gpt?prompt=Write+a+poem+about+the+ocean
-                        </div>
-                    </div>
-                    
-                    <div class="try-it">
-                        <div class="try-it-title">Try it out</div>
-                        <input type="text" id="gptPrompt" placeholder="Enter your prompt">
-                        <button onclick="testGPT()">Ask Gemini</button>
-                        <div class="response" id="gptResponse"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <footer>
-            <p>Media API Hub &copy; 2023 | All endpoints are rate limited to 100 requests per 15 minutes</p>
-        </footer>
-    </div>
-    
-    <script>
-        async function testSearch() {
-            const query = document.getElementById('searchQuery').value.trim();
-            if (!query) {
-                alert('Please enter a search query');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('searchResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${data.error}</div>`;
-                } else {
-                    let html = `<div><strong>${data.count} results found:</strong></div>`;
-                    data.results.forEach(song => {
-                        html += `
-                            <div style="margin-top: 1rem; padding: 0.5rem; border-bottom: 1px solid #eee;">
-                                <div><strong>${song.title}</strong> by ${song.artist}</div>
-                                <div>Duration: ${song.duration} | Views: ${song.views}</div>
-                                <div><small>${song.url}</small></div>
-                            </div>
-                        `;
-                    });
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${error.message}</div>`;
-            }
-        }
-        
-        function testYoutube() {
-            const url = document.getElementById('youtubeUrl').value.trim();
-            if (!url || !url.includes('youtube.com')) {
-                alert('Please enter a valid YouTube URL');
-                return;
-            }
-            window.open(`/youtube?url=${encodeURIComponent(url)}`, '_blank');
-        }
-        
-        function testTikTok() {
-            const url = document.getElementById('tiktokUrl').value.trim();
-            if (!url || !url.includes('tiktok.com')) {
-                alert('Please enter a valid TikTok URL');
-                return;
-            }
-            window.open(`/tiktok?url=${encodeURIComponent(url)}`, '_blank');
-        }
-        
-        function testFacebook() {
-            const url = document.getElementById('facebookUrl').value.trim();
-            if (!url || !url.includes('facebook.com')) {
-                alert('Please enter a valid Facebook URL');
-                return;
-            }
-            window.open(`/facebook?url=${encodeURIComponent(url)}`, '_blank');
-        }
-        
-        async function testLyrics() {
-            const query = document.getElementById('lyricsQuery').value.trim();
-            if (!query) {
-                alert('Please enter a song name');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('lyricsResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/lyrics?song=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${data.error}</div>`;
-                } else {
-                    let html = `
-                        <div><strong>${data.title}</strong> by ${data.artist}</div>
-                        <div style="margin-top: 1rem; white-space: pre-line;">${data.lyrics}</div>
-                    `;
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `<div style="color: var(--danger)">Error: ${error.message}</div>`;
-            }
-        }
-        
-        async function testGPT() {
-            const prompt = document.getElementById('gptPrompt').value.trim();
-            if (!prompt) {
-                alert('Please enter a prompt');
-                return;
-            }
-            
-            const responseDiv = document.getElementById('gptResponse');
-            responseDiv.style.display = 'block';
-            responseDiv.innerHTML = 'Loading...';
-            
-            try {
-                const response = await fetch(`/gpt?text=${encodeURIComponent(prompt)}`);
-                const data = await response.json();
-                
-                if (data.error) {
-                    responseDiv.innerHTML = `
-                        <div style="color: var(--danger)">
-                            <strong>Error:</strong> ${data.error}<br>
-                            ${data.details ? `<small>${data.details}</small>` : ''}
-                        </div>
-                    `;
-                } else {
-                    let html = `
-                        <div style="white-space: pre-line;"><strong>Response:</strong><br>${data.response}</div>
-                    `;
-                    if (data.tokens) {
-                        html += `<div style="margin-top: 1rem; font-size: 0.8rem; color: var(--gray)">
-                            Tokens used: ${data.tokens}
-                        </div>`;
-                    }
-                    responseDiv.innerHTML = html;
-                }
-            } catch (error) {
-                responseDiv.innerHTML = `
-                    <div style="color: var(--danger)">
-                        <strong>Error:</strong> ${error.message}
-                    </div>
-                `;
-            }
-        }
-    </script>
+
+  <header>
+    <h1>📡 Media API Endpoints</h1>
+    <p>Enter your query or URL, then click the button to fetch results.</p>
+  </header>
+
+  <div class="endpoint">
+    <h3>🔍 YouTube Music Search</h3>
+    <input id="searchQuery" type="text" placeholder="e.g. Shape of You" />
+    <button onclick="fetchData('/search?q=', 'searchQuery')">Search</button>
+    <div class="result" id="searchResult"></div>
+  </div>
+
+  <div class="endpoint">
+    <h3>🎵 Lyrics Finder</h3>
+    <input id="lyricsQuery" type="text" placeholder="e.g. Eminem - Lose Yourself" />
+    <button onclick="fetchData('/lyrics?song=', 'lyricsQuery')">Get Lyrics</button>
+    <div class="result" id="lyricsResult"></div>
+  </div>
+
+  <div class="endpoint">
+    <h3>📱 TikTok Downloader</h3>
+    <input id="tiktokUrl" type="text" placeholder="Paste TikTok video URL" />
+    <button onclick="window.open('/tiktok?url=' + encodeURIComponent(document.getElementById('tiktokUrl').value))">Download</button>
+  </div>
+
+  <div class="endpoint">
+    <h3>📘 Facebook Downloader</h3>
+    <input id="facebookUrl" type="text" placeholder="Paste Facebook video URL" />
+    <button onclick="window.open('/facebook?url=' + encodeURIComponent(document.getElementById('facebookUrl').value))">Download</button>
+  </div>
+
+  <div class="endpoint">
+    <h3>📺 YouTube Downloader</h3>
+    <input id="youtubeUrl" type="text" placeholder="Paste YouTube video URL" />
+    <button onclick="window.open('/youtube?url=' + encodeURIComponent(document.getElementById('youtubeUrl').value))">Download</button>
+  </div>
+
+  <div class="endpoint">
+    <h3>🤖 Gemini GPT</h3>
+    <input id="gptPrompt" type="text" placeholder="Ask anything..." />
+    <button onclick="fetchData('/gpt?text=', 'gptPrompt')">Ask</button>
+    <div class="result" id="gptResult"></div>
+  </div>
+
+  <script>
+    async function fetchData(endpoint, inputId) {
+      const query = document.getElementById(inputId).value.trim();
+      if (!query) return alert("Please enter a value.");
+      const targetDiv = inputId.replace("Query", "Result") || 'gptResult';
+      try {
+        const response = await fetch(endpoint + encodeURIComponent(query));
+        const data = await response.json();
+        document.getElementById(targetDiv).textContent = JSON.stringify(data, null, 2);
+      } catch (error) {
+        document.getElementById(targetDiv).textContent = "Error: " + error.message;
+      }
+    }
+  </script>
+
 </body>
 </html>
