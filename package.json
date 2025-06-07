@@ -5,19 +5,38 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "if [ ! -f /opt/render/.local/bin/yt-dlp ]; then bash build.sh; fi",
+    "postinstall": "echo 'Skipping postinstall to prevent build loops'",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "check-deps": "node scripts/check-dependencies.js"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.5.0",
     "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "express-rate-limit": "^6.7.0",
+    "helmet": "^7.1.0",
+    "sanitize-filename": "^1.6.3",
+    "yt-search": "^2.12.1",
     "ytdl-core": "^4.11.5",
-    "sanitize-filename": "^1.6.3"
+    "youtube-dl-exec": "^1.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "render": {
+    "buildCommand": "npm install",
+    "startCommand": "npm start",
+    "environment": {
+      "NODE_ENV": "production",
+      "PATH": "/opt/render/.local/bin:${PATH}"
+    }
   }
 }
