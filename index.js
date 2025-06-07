@@ -18,6 +18,8 @@ const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
+app.set('trust proxy', 1);
+
 // Configure system PATH for Render.com
 process.env.PATH = `${process.env.PATH}:/opt/render/.local/bin:/usr/local/bin:/usr/bin:/bin`;
 
