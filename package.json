@@ -1,13 +1,19 @@
 {
-  {
-  "name": "Kish-md-api",
+  "name": "kish md-api",
   "version": "1.0.0",
   "description": "A multipurpose Express API with lyrics, Gemini AI, logo maker, and remove.bg integration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": ["express", "gemini", "lyrics", "removebg", "logo", "api"],
+  "keywords": [
+    "express",
+    "gemini",
+    "lyrics",
+    "removebg",
+    "logo",
+    "api"
+  ],
   "author": "Brashokish",
   "license": "MIT",
   "dependencies": {
@@ -23,4 +29,3 @@
     "sanitize-filename": "^1.6.3"
   }
 }
-
