@@ -122,7 +122,7 @@ app.get('/youtube', async (req, res) => {
 
   try {
     // Use yt-dlp to extract download URL and metadata
-    const { stdout } = await execAsync(`yt-dlp -j "${videoUrl}"`);
+    const { stdout } = await execAsync(`/opt/render/.local/bin/yt-dlp -j "${videoUrl}"`);
     const info = JSON.parse(stdout);
 
     const audioFormat = info.formats.find(f => f.ext === 'm4a' || f.ext === 'mp3');
