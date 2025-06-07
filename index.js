@@ -2,8 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const yts = require("yt-search");
-const ytdl = require("ytdl-core");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
@@ -13,15 +11,11 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const sanitizeFilename = require("sanitize-filename");
+const FormData = require('form-data');
 
 const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
-
-app.set('trust proxy', 1);
-
-// Configure system 
-process.env.PATH += ':/usr/local/bin';
 
 // ======================
 // Middleware
@@ -42,7 +36,7 @@ const apiLimiter = rateLimit({
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAuw9QCvV-MSYKGl1FLpDetJyKF7_5vj6s");
-const model = genAI?.getGenerativeModel({
+const model = genAI.getGenerativeModel({
   model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.3,
@@ -87,105 +81,21 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// Music Search Endpoint
-app.get('/search', apiLimiter, async (req, res) => {
-  const query = req.query.q || req.query.song;
-  if (!query) return res.status(400).json({ error: 'Missing search query' });
-
-  try {
-    const results = await yts(query);
-    if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
-
-    const yourDomain = process.env.API_DOMAIN || `https://${req.get('host')}`;
-    const songs = results.videos.slice(0, 5).map(video => ({
-      title: video.title,
-      url: video.url,
-      duration: formatDuration(video.seconds),
-      thumbnail: video.thumbnail,
-      audio: `${yourDomain}/youtube?url=${encodeURIComponent(video.url)}`
-    }));
-
-    res.json(songs);
-  } catch (error) {
-    console.error('Search error:', error);
-    res.status(500).json({ error: 'Search failed', details: error.message });
-  }
-});
-
-// YouTube Audio Downloader
-app.get('/youtube', async (req, res) => {
-  const videoUrl = req.query.url;
-
-  if (!videoUrl || !ytdl.validateURL(videoUrl)) {
-    return res.status(400).json({ error: '❌ Invalid YouTube URL' });
-  }
-
-  const tempFile = path.join(__dirname, `temp_yt_${Date.now()}.mp3`);
-
-  try {
-    const info = await ytdl.getInfo(videoUrl);
-    const title = sanitizeFilename(info.videoDetails.title);
-
-    // Set headers for file download
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    // Try yt-dlp first
-    try {
-      await execAsync(`/usr/local/bin/yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${videoUrl}"`);
-
-      if (!fs.existsSync(tempFile)) throw new Error('yt-dlp failed to create file');
-
-      const fileStream = fs.createReadStream(tempFile);
-      fileStream.pipe(res);
-
-      fileStream.on('close', () => cleanTempFiles(tempFile));
-      fileStream.on('error', () => cleanTempFiles(tempFile));
-
-    } catch (ytdlpError) {
-      console.warn('Falling back to ytdl-core:', ytdlpError.message);
-
-      // Fallback to ytdl-core if yt-dlp fails
-      const audioStream = ytdl(videoUrl, {
-        filter: 'audioonly',
-        quality: 'highestaudio',
-      });
-
-      audioStream.pipe(res);
-    }
-
-  } catch (err) {
-    console.error("YouTube API Error:", err.message);
-    cleanTempFiles(tempFile);
-
-    let message = '❌ Failed to download audio';
-    if (err.message.includes('Video unavailable')) {
-      message = '❌ Video unavailable';
-    } else if (err.message.includes('410')) {
-      message = '❌ YouTube URL expired or removed';
-    }
-
-    res.status(500).json({
-      error: message,
-      details: err.message,
-    });
-  }
-});
 // Lyrics Endpoint
 app.get('/lyrics', apiLimiter, async (req, res) => {
-  const query = req.query.text;
+  const query = req.query.song || req.query.q;
   if (!query) return res.status(400).json({ error: 'Missing song parameter' });
 
   try {
-    const [artist, title] = query.includes('-') ?
-      query.split('-').map(s => s.trim()) :
+    const [artist, title] = query.includes('-') ? 
+      query.split('-').map(s => s.trim()) : 
       [null, query.trim()];
-
+    
     const response = await axios.get(
       `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(title)}`,
       { timeout: 5000 }
     );
-
+    
     if (response.data?.lyrics) {
       return res.json({
         artist: artist || 'Unknown',
@@ -196,74 +106,47 @@ app.get('/lyrics', apiLimiter, async (req, res) => {
     return res.status(404).json({ error: 'Lyrics not found' });
   } catch (error) {
     console.error('Lyrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch lyrics', details: error.message });
+    res.status(500).json({ error: 'Failed to fetch lyrics' });
   }
 });
 
-// TikTok Downloader
-app.get("/tiktok", apiLimiter, async (req, res) => {
-  const url = req.query.url;
-  if (!url || !validateUrl(url, 'tiktok')) {
-    return res.status(400).json({ error: "Invalid TikTok URL" });
-  }
-
-  const tempFile = path.join(__dirname, `temp_tt_${Date.now()}.mp4`);
-
+// Remove.bg API
+app.post('/removebg', apiLimiter, async (req, res) => {
   try {
-    // Try yt-dlp first
-    try {
-      await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
-    } catch (e) {
-      console.log('Falling back to direct download');
-      await execAsync(`curl -L "${url}" -o "${tempFile}"`);
+    if (!req.body.imageUrl && !req.body.imageData) {
+      return res.status(400).json({ error: 'Please provide imageUrl or imageData' });
     }
 
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `tiktok_${Date.now()}.mp4`, (err) => {
-      cleanTempFiles(tempFile);
-      if (err) console.error('TikTok download error:', err);
+    const formData = new FormData();
+    if (req.body.imageUrl) {
+      formData.append('image_url', req.body.imageUrl);
+    } else {
+      formData.append('image_file_b64', req.body.imageData);
+    }
+    
+    const response = await axios.post('https://api.remove.bg/v1.0/removebg', formData, {
+      headers: {
+        ...formData.getHeaders(),
+        'X-Api-Key': process.env.REMOVEBG_API_KEY || 'f6YEDzUKiBpkp2j4ZuKm9y3Y'
+      },
+      responseType: 'arraybuffer'
     });
+
+    res.set('Content-Type', 'image/png');
+    res.send(response.data);
   } catch (error) {
-    cleanTempFiles(tempFile);
-    console.error('TikTok error:', error);
-    res.status(500).json({ error: "TikTok download failed", details: error.message });
+    console.error('Remove.bg error:', error);
+    res.status(500).json({ error: 'Failed to remove background' });
   }
 });
 
-// Facebook Downloader
-app.get("/facebook", apiLimiter, async (req, res) => {
-  const url = req.query.url;
-  if (!url || !validateUrl(url, 'facebook')) {
-    return res.status(400).json({ error: "Invalid Facebook URL" });
-  }
-
-  const tempFile = path.join(__dirname, `temp_fb_${Date.now()}.mp4`);
-
-  try {
-    await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
-    if (!fs.existsSync(tempFile)) throw new Error("Download failed");
-
-    res.download(tempFile, `facebook_${Date.now()}.mp4`, (err) => {
-      cleanTempFiles(tempFile);
-      if (err) console.error('Facebook download error:', err);
-    });
-  } catch (error) {
-    cleanTempFiles(tempFile);
-    console.error('Facebook error:', error);
-    res.status(500).json({ error: "Facebook download failed", details: error.message });
-  }
-});
-
-// GPT Chat Endpoint
-app.get("/gpt", apiLimiter, async (req, res) => {
-  if (!model) return res.status(503).json({ error: "Gemini AI service not configured" });
-
-  const prompt = req.query.text;
+// Gemini AI Endpoint
+app.get("/gemini", apiLimiter, async (req, res) => {
+  const prompt = req.query.text || req.query.prompt;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
   try {
-    const chat = model.startChat({
+    const chat = model.startChat({ 
       history: [],
       generationConfig: {
         temperature: 0.3,
@@ -274,24 +157,62 @@ app.get("/gpt", apiLimiter, async (req, res) => {
     });
     const result = await chat.sendMessage(prompt);
     const response = await result.response;
-
-    res.json({
+    
+    res.json({ 
       response: response.text(),
       tokens: response.usageMetadata?.totalTokenCount || 'unknown'
     });
   } catch (err) {
-    console.error('GPT Error:', err);
-    res.status(500).json({
-      error: "Failed to fetch GPT response",
-      details: err.message
+    console.error('Gemini Error:', err);
+    res.status(500).json({ 
+      error: "Failed to fetch Gemini response",
+      details: err.message 
     });
   }
 });
 
+// Logo Maker using Photooxy
+app.get('/logo', apiLimiter, async (req, res) => {
+  const { text, effect } = req.query;
+  
+  if (!text) {
+    return res.status(400).json({ error: 'Text parameter is required' });
+  }
+
+  try {
+    // First request to get the processing page
+    const initResponse = await axios.post(`https://photooxy.com/${effect}`, 
+      new URLSearchParams({ text: text }), 
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+      }
+    );
+
+    const $ = cheerio.load(initResponse.data);
+    const imageUrl = $('div.btn-group a').attr('href');
+    
+    if (!imageUrl) {
+      return res.status(500).json({ error: 'Failed to generate logo' });
+    }
+
+    // Second request to get the actual image
+    const imageResponse = await axios.get(`https://photooxy.com${imageUrl}`, {
+      responseType: 'arraybuffer'
+    });
+
+    res.set('Content-Type', 'image/png');
+    res.send(imageResponse.data);
+  } catch (error) {
+    console.error('Logo maker error:', error);
+    res.status(500).json({ error: 'Failed to generate logo', details: error.message });
+  }
+});
 // ======================
 // Server Start
 // ======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-  console.log(`ℹ️  YouTube downloads using ${fs.existsSync('/opt/render/.local/bin/yt-dlp') ? 'yt-dlp' : 'ytdl-core'}`);
 });
