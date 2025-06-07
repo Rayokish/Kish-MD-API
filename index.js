@@ -18,10 +18,8 @@ const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Ensure system binaries are in PATH
-process.env.PATH = `${process.env.PATH}:/usr/local/bin:/usr/bin:/bin`;
-
-app.set('trust proxy', 1);
+// Configure system PATH for Render.com
+process.env.PATH = `${process.env.PATH}:/opt/render/.local/bin:/usr/local/bin:/usr/bin:/bin`;
 
 // ======================
 // Middleware
@@ -42,7 +40,7 @@ const apiLimiter = rateLimit({
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyAuw9QCvV-MSYKGl1FLpDetJyKF7_5vj6s");
-const model = genAI.getGenerativeModel({
+const model = genAI?.getGenerativeModel({
   model: "gemini-1.5-flash",
   generationConfig: {
     temperature: 0.3,
@@ -96,7 +94,7 @@ app.get('/search', apiLimiter, async (req, res) => {
     const results = await yts(query);
     if (!results.videos.length) return res.status(404).json({ error: 'No results found' });
 
-    const yourDomain = process.env.API_DOMAIN || 'https://kish-md-api.onrender.com';
+    const yourDomain = process.env.API_DOMAIN || `https://${req.get('host')}`;
     const songs = results.videos.slice(0, 5).map(video => ({
       title: video.title,
       url: video.url,
@@ -108,11 +106,11 @@ app.get('/search', apiLimiter, async (req, res) => {
     res.json(songs);
   } catch (error) {
     console.error('Search error:', error);
-    res.status(500).json({ error: 'Search failed' });
+    res.status(500).json({ error: 'Search failed', details: error.message });
   }
 });
 
-// YouTube Audio Downloader (using yt-dlp)
+// YouTube Audio Downloader (with yt-dlp fallback)
 app.get('/youtube', apiLimiter, async (req, res) => {
   const videoUrl = req.query.url;
   if (!videoUrl || !ytdl.validateURL(videoUrl)) {
@@ -122,26 +120,38 @@ app.get('/youtube', apiLimiter, async (req, res) => {
   const tempFile = path.join(__dirname, `temp_yt_${Date.now()}.mp3`);
 
   try {
-    // Get video info first for metadata
-    const info = await ytdl.getInfo(videoUrl).catch(() => null);
-    const title = info ? sanitizeFilename(info.videoDetails.title) : 'audio';
+    const info = await ytdl.getInfo(videoUrl);
+    const title = sanitizeFilename(info.videoDetails.title);
 
-    // Download using yt-dlp (much more reliable)
-    await execAsync(`yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${videoUrl}"`);
+    // Try yt-dlp first
+    try {
+      await execAsync(`yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${videoUrl}"`);
+      
+      if (!fs.existsSync(tempFile)) {
+        throw new Error('yt-dlp failed to create file');
+      }
 
-    if (!fs.existsSync(tempFile)) {
-      throw new Error('Download failed - no file created');
+      res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+      res.setHeader('Content-Type', 'audio/mpeg');
+
+      const fileStream = fs.createReadStream(tempFile);
+      fileStream.pipe(res);
+      
+      fileStream.on('close', () => cleanTempFiles(tempFile));
+      fileStream.on('error', () => cleanTempFiles(tempFile));
+
+    } catch (ytdlpError) {
+      console.log('Falling back to ytdl-core due to:', ytdlpError.message);
+      
+      // Fallback to ytdl-core
+      res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+      res.setHeader('Content-Type', 'audio/mpeg');
+      
+      ytdl(videoUrl, {
+        quality: 'highestaudio',
+        filter: 'audioonly',
+      }).pipe(res);
     }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    const fileStream = fs.createReadStream(tempFile);
-    fileStream.pipe(res);
-    
-    fileStream.on('end', () => cleanTempFiles(tempFile));
-    fileStream.on('error', () => cleanTempFiles(tempFile));
-
   } catch (err) {
     console.error("YouTube download error:", err.message);
     cleanTempFiles(tempFile);
@@ -151,8 +161,6 @@ app.get('/youtube', apiLimiter, async (req, res) => {
       errorMsg = '❌ Video is unavailable (private/removed)';
     } else if (err.message.includes('Age restricted')) {
       errorMsg = '❌ Age-restricted video';
-    } else if (err.message.includes('This video is unavailable')) {
-      errorMsg = '❌ Video unavailable in your region';
     }
     
     res.status(500).json({ 
@@ -187,7 +195,7 @@ app.get('/lyrics', apiLimiter, async (req, res) => {
     return res.status(404).json({ error: 'Lyrics not found' });
   } catch (error) {
     console.error('Lyrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch lyrics' });
+    res.status(500).json({ error: 'Failed to fetch lyrics', details: error.message });
   }
 });
 
@@ -201,7 +209,14 @@ app.get("/tiktok", apiLimiter, async (req, res) => {
   const tempFile = path.join(__dirname, `temp_tt_${Date.now()}.mp4`);
 
   try {
-    await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
+    // Try yt-dlp first
+    try {
+      await execAsync(`yt-dlp -f best -o "${tempFile}" "${url}"`);
+    } catch (e) {
+      console.log('Falling back to direct download');
+      await execAsync(`curl -L "${url}" -o "${tempFile}"`);
+    }
+
     if (!fs.existsSync(tempFile)) throw new Error("Download failed");
 
     res.download(tempFile, `tiktok_${Date.now()}.mp4`, (err) => {
@@ -211,7 +226,7 @@ app.get("/tiktok", apiLimiter, async (req, res) => {
   } catch (error) {
     cleanTempFiles(tempFile);
     console.error('TikTok error:', error);
-    res.status(500).json({ error: "TikTok download failed" });
+    res.status(500).json({ error: "TikTok download failed", details: error.message });
   }
 });
 
@@ -235,12 +250,14 @@ app.get("/facebook", apiLimiter, async (req, res) => {
   } catch (error) {
     cleanTempFiles(tempFile);
     console.error('Facebook error:', error);
-    res.status(500).json({ error: "Facebook download failed" });
+    res.status(500).json({ error: "Facebook download failed", details: error.message });
   }
 });
 
 // GPT Chat Endpoint
 app.get("/gpt", apiLimiter, async (req, res) => {
+  if (!model) return res.status(503).json({ error: "Gemini AI service not configured" });
+
   const prompt = req.query.text;
   if (!prompt) return res.status(400).json({ error: "Prompt is required" });
 
@@ -275,5 +292,5 @@ app.get("/gpt", apiLimiter, async (req, res) => {
 // ======================
 app.listen(port, () => {
   console.log(`✅ Server running on port ${port}`);
-  console.log(`ℹ️  YouTube downloads using yt-dlp`);
+  console.log(`ℹ️  YouTube downloads using ${fs.existsSync('/opt/render/.local/bin/yt-dlp') ? 'yt-dlp' : 'ytdl-core'}`);
 });
