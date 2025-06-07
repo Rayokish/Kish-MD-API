@@ -1,489 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KIAH MD API Services</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f7fa;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-        
-        .tagline {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-top: 10px;
-        }
-        
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 25px;
-            margin-top: 30px;
-        }
-        
-        .service-card {
-            background: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .service-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        .service-title {
-            color: #4a6cf7;
-            margin-top: 0;
-            font-size: 1.5rem;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-        
-        .service-description {
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .input-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-        
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border 0.3s;
-        }
-        
-        input:focus, textarea:focus, select:focus {
-            border-color: #6e8efb;
-            outline: none;
-        }
-        
-        button {
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: opacity 0.3s;
-            width: 100%;
-        }
-        
-        button:hover {
-            opacity: 0.9;
-        }
-        
-        .result-container {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-            border-left: 4px solid #6e8efb;
-            display: none;
-        }
-        
-        .result-title {
-            margin-top: 0;
-            color: #4a6cf7;
-        }
-        
-        .lyrics-result {
-            white-space: pre-line;
-        }
-        
-        .logo-preview {
-            max-width: 100%;
-            height: auto;
-            margin-top: 15px;
-            border-radius: 5px;
-        }
-        
-        .download-btn {
-            display: inline-block;
-            margin-top: 15px;
-            text-decoration: none;
-            background: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #666;
-            border-top: 1px solid #eee;
-        }
-        
-        @media (max-width: 768px) {
-            .services-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KIAH MD API</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      color: #333;
+      text-align: center;
+    }
+
+    header {
+      background-color: #4a6cf7;
+      color: white;
+      width: 100%;
+      padding: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+    }
+
+    main {
+      padding: 40px 20px;
+    }
+
+    main p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    .endpoints {
+      text-align: left;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .endpoint {
+      background-color: white;
+      padding: 15px 20px;
+      margin: 10px 0;
+      border-left: 4px solid #4a6cf7;
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .endpoint a {
+      color: #4a6cf7;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .endpoint a:hover {
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 50px;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>API Services Hub</h1>
-            <p class="tagline">Access powerful tools with simple API endpoints</p>
-        </div>
-    </header>
-    
-    <div class="container">
-        <div class="services-grid">
-            <!-- Lyrics Service -->
-            <div class="service-card">
-                <h2 class="service-title">Lyrics Finder</h2>
-                <p class="service-description">Find lyrics for any song by entering the artist and title.</p>
-                
-                <div class="input-group">
-                    <label for="lyrics-query">Song (Artist - Title or just Title)</label>
-                    <input type="text" id="lyrics-query" placeholder="e.g. The Beatles - Yesterday">
-                </div>
-                
-                <button onclick="getLyrics()" id="lyrics-btn">Get Lyrics</button>
-                
-                <div class="result-container" id="lyrics-result">
-                    <h3 class="result-title">Lyrics</h3>
-                    <div class="lyrics-result" id="lyrics-text"></div>
-                </div>
-            </div>
-            
-            <!-- Background Remover -->
-            <div class="service-card">
-                <h2 class="service-title">Background Remover</h2>
-                <p class="service-description">Remove background from any image using AI.</p>
-                
-                <div class="input-group">
-                    <label for="image-url">Image URL</label>
-                    <input type="text" id="image-url" placeholder="https://example.com/image.jpg">
-                </div>
-                
-                <p style="text-align: center; margin: 15px 0;">OR</p>
-                
-                <div class="input-group">
-                    <label for="image-upload">Upload Image</label>
-                    <input type="file" id="image-upload" accept="image/*">
-                </div>
-                
-                <button onclick="removeBackground()" id="removebg-btn">Remove Background</button>
-                
-                <div class="result-container" id="removebg-result">
-                    <h3 class="result-title">Result</h3>
-                    <img id="processed-image" style="max-width: 100%; display: none;">
-                    <a id="download-link" class="download-btn" style="display: none;">Download Image</a>
-                </div>
-            </div>
-            
-            <!-- Gemini AI -->
-            <div class="service-card">
-                <h2 class="service-title">Gemini AI</h2>
-                <p class="service-description">Ask questions and get answers from Google's Gemini AI.</p>
-                
-                <div class="input-group">
-                    <label for="ai-prompt">Your Question</label>
-                    <textarea id="ai-prompt" rows="3" placeholder="Ask me anything..."></textarea>
-                </div>
-                
-                <button onclick="askGemini()" id="gemini-btn">Ask Gemini</button>
-                
-                <div class="result-container" id="gemini-result">
-                    <h3 class="result-title">Response</h3>
-                    <div id="gemini-response"></div>
-                </div>
-            </div>
-            
-            <!-- Photooxy Logo Maker -->
-            <div class="service-card">
-                <h2 class="service-title">Photooxy Logo Maker</h2>
-                <p class="service-description">Create professional logos using Photooxy's effects.</p>
-                
-                <div class="input-group">
-                    <label for="logo-text">Logo Text</label>
-                    <input type="text" id="logo-text" placeholder="Your text here">
-                </div>
-                
-                <div class="input-group">
-                    <label for="logo-effect">Effect Style</label>
-                    <select id="logo-effect">
-                        <option value="logo-and-text-effects/online-3d-text-effect-171.html">3D Text</option>
-                        <option value="logo-and-text-effects/shadow-text-effect-in-the-sky-390.html">Shadow Text</option>
-                        <option value="logo-and-text-effects/glowing-neon-effect-177.html">Neon Effect</option>
-                        <option value="logo-and-text-effects/put-text-on-a-cup-174.html">Text on Cup</option>
-                        <option value="logo-and-text-effects/carved-wood-effect-182.html">Carved Wood</option>
-                        <option value="logo-and-text-effects/metal-text-effect-183.html">Metal Text</option>
-                        <option value="logo-and-text-effects/create-a-cloud-text-effect-on-the-sky-178.html">Cloud Text</option>
-                        <option value="logo-and-text-effects/realistic-flaming-text-effect-197.html">Flaming Text</option>
-                    </select>
-                </div>
-                
-                <button onclick="generateLogo()" id="logo-btn">Generate Logo</button>
-                
-                <div class="result-container" id="logo-result">
-                    <h3 class="result-title">Your Logo</h3>
-                    <img id="logo-preview" class="logo-preview">
-                    <a id="logo-download" class="download-btn" style="display: none;">Download Logo</a>
-                </div>
-            </div>
-        </div>
+  <header>
+    <h1>🚀 KIAH MD API Server</h1>
+  </header>
+
+  <main>
+    <p>Welcome to the KIAH MD Bot API! Explore the available endpoints below:</p>
+
+    <div class="endpoints">
+      <div class="endpoint">
+        <a href="/lyrics?song=Adele-Hello">/lyrics?song=Adele-Hello</a><br/>
+        <small>→ Get lyrics for a song</small>
+      </div>
+      <div class="endpoint">
+        <a href="/gemini?text=What%20is%20AI">/gemini?text=What is AI</a><br/>
+        <small>→ Ask Gemini AI a question</small>
+      </div>
+      <div class="endpoint">
+        <a href="/logo?text=KIAH&effect=text-effects">/logo?text=KIAH&effect=text-effects</a><br/>
+        <small>→ Generate a logo</small>
+      </div>
+      <!-- Add more API links here -->
     </div>
-    
-    <footer>
-        <div class="container">
-            <p>KIAH MD API Services &copy; 2025 | All rights reserved</p>
-        </div>
-    </footer>
-    
-    <script>
-        // Helper function to show loading state
-        function setLoading(button, isLoading) {
-            if (isLoading) {
-                button.innerHTML = `<span class="loading"></span> ${button.textContent}`;
-                button.disabled = true;
-            } else {
-                button.innerHTML = button.textContent;
-                button.disabled = false;
-            }
-        }
-        
-        // Lyrics Finder
-        async function getLyrics() {
-            const query = document.getElementById('lyrics-query').value.trim();
-            if (!query) {
-                alert('Please enter a song name');
-                return;
-            }
-            
-            const button = document.getElementById('lyrics-btn');
-            setLoading(button, true);
-            
-            try {
-                const response = await fetch(`/lyrics?song=${encodeURIComponent(query)}`);
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to fetch lyrics');
-                }
-                
-                document.getElementById('lyrics-text').textContent = 
-                    `${data.artist || 'Unknown'} - ${data.title}\n\n${data.lyrics}`;
-                document.getElementById('lyrics-result').style.display = 'block';
-            } catch (error) {
-                document.getElementById('lyrics-text').textContent = error.message;
-                document.getElementById('lyrics-result').style.display = 'block';
-                console.error('Lyrics error:', error);
-            } finally {
-                setLoading(button, false);
-            }
-        }
-        
-        // Background Remover
-        async function removeBackground() {
-            const imageUrl = document.getElementById('image-url').value.trim();
-            const fileInput = document.getElementById('image-upload');
-            
-            if (!imageUrl && !fileInput.files[0]) {
-                alert('Please provide an image URL or upload a file');
-                return;
-            }
-            
-            const button = document.getElementById('removebg-btn');
-            setLoading(button, true);
-            
-            try {
-                const formData = new FormData();
-                
-                if (imageUrl) {
-                    formData.append('imageUrl', imageUrl);
-                } else {
-                    const file = fileInput.files[0];
-                    const base64 = await toBase64(file);
-                    formData.append('imageData', base64.split(',')[1]);
-                }
-                
-                const response = await fetch('/removebg', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || 'Background removal failed');
-                }
-                
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
-                
-                const imgElement = document.getElementById('processed-image');
-                imgElement.src = imageUrl;
-                imgElement.style.display = 'block';
-                
-                const downloadLink = document.getElementById('download-link');
-                downloadLink.href = imageUrl;
-                downloadLink.download = 'no-bg.png';
-                downloadLink.style.display = 'inline-block';
-                
-                document.getElementById('removebg-result').style.display = 'block';
-            } catch (error) {
-                alert('Error: ' + error.message);
-                console.error('RemoveBG error:', error);
-            } finally {
-                setLoading(button, false);
-            }
-        }
-        
-        // Helper function to convert file to base64
-        function toBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-        
-        // Gemini AI
-        async function askGemini() {
-            const prompt = document.getElementById('ai-prompt').value.trim();
-            if (!prompt) {
-                alert('Please enter a question');
-                return;
-            }
-            
-            const button = document.getElementById('gemini-btn');
-            setLoading(button, true);
-            
-            try {
-                const response = await fetch(`/gemini?prompt=${encodeURIComponent(prompt)}`);
-                const data = await response.json();
-                
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to get response from Gemini');
-                }
-                
-                document.getElementById('gemini-response').textContent = data.response;
-                document.getElementById('gemini-result').style.display = 'block';
-            } catch (error) {
-                document.getElementById('gemini-response').textContent = error.message;
-                document.getElementById('gemini-result').style.display = 'block';
-                console.error('Gemini error:', error);
-            } finally {
-                setLoading(button, false);
-            }
-        }
-        
-        // Photooxy Logo Generator
-        async function generateLogo() {
-            const text = document.getElementById('logo-text').value.trim();
-            if (!text) {
-                alert('Please enter logo text');
-                return;
-            }
-            
-            const effect = document.getElementById('logo-effect').value;
-            const button = document.getElementById('logo-btn');
-            setLoading(button, true);
-            
-            try {
-                // Show loading state
-                const preview = document.getElementById('logo-preview');
-                preview.src = '';
-                preview.alt = 'Generating...';
-                document.getElementById('logo-result').style.display = 'block';
-                
-                // Call our API endpoint
-                const response = await fetch(`/logo?text=${encodeURIComponent(text)}&effect=${encodeURIComponent(effect)}`);
-                
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || 'Logo generation failed');
-                }
-                
-                // Create object URL from the blob
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
-                
-                // Display the result
-                preview.src = imageUrl;
-                preview.alt = text;
-                
-                // Set up download link
-                const downloadLink = document.getElementById('logo-download');
-                downloadLink.href = imageUrl;
-                downloadLink.download = `${text.replace(/\s+/g, '-').toLowerCase()}-logo.png`;
-                downloadLink.style.display = 'inline-block';
-            } catch (error) {
-                console.error('Logo generation error:', error);
-                alert('Error: ' + error.message);
-            } finally {
-                setLoading(button, false);
-            }
-        }
-    </script>
+  </main>
+
+  <footer>
+    &copy; 2025 KIAH MD API | Powered by Express.js
+  </footer>
 </body>
 </html>
