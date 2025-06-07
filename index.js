@@ -20,8 +20,8 @@ const port = process.env.PORT || 8080;
 
 app.set('trust proxy', 1);
 
-// Configure system PATH for Render.com
-process.env.PATH = `${process.env.PATH}:/opt/render/.local/bin:/usr/local/bin:/usr/bin:/bin`;
+// Configure system 
+process.env.PATH += ':/usr/local/bin';
 
 // ======================
 // Middleware
@@ -120,29 +120,54 @@ app.get('/youtube', async (req, res) => {
     return res.status(400).json({ error: '❌ Invalid YouTube URL' });
   }
 
+  const tempFile = path.join(__dirname, `temp_yt_${Date.now()}.mp3`);
+
   try {
-    // Use yt-dlp to extract download URL and metadata
-    const { stdout } = await execAsync(`/opt/render/.local/bin/yt-dlp -j "${videoUrl}"`);
-    const info = JSON.parse(stdout);
+    const info = await ytdl.getInfo(videoUrl);
+    const title = sanitizeFilename(info.videoDetails.title);
 
-    const audioFormat = info.formats.find(f => f.ext === 'm4a' || f.ext === 'mp3');
+    // Set headers for file download
+    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
+    res.setHeader('Content-Type', 'audio/mpeg');
 
-    if (!audioFormat || !audioFormat.url) {
-      return res.status(500).json({ error: '❌ Unable to retrieve audio download URL' });
+    // Try yt-dlp first
+    try {
+      await execAsync(`/usr/local/bin/yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${tempFile}" "${videoUrl}"`);
+
+      if (!fs.existsSync(tempFile)) throw new Error('yt-dlp failed to create file');
+
+      const fileStream = fs.createReadStream(tempFile);
+      fileStream.pipe(res);
+
+      fileStream.on('close', () => cleanTempFiles(tempFile));
+      fileStream.on('error', () => cleanTempFiles(tempFile));
+
+    } catch (ytdlpError) {
+      console.warn('Falling back to ytdl-core:', ytdlpError.message);
+
+      // Fallback to ytdl-core if yt-dlp fails
+      const audioStream = ytdl(videoUrl, {
+        filter: 'audioonly',
+        quality: 'highestaudio',
+      });
+
+      audioStream.pipe(res);
     }
 
-    res.json({
-      title: info.title,
-      duration: info.duration,
-      thumbnail: info.thumbnail,
-      downloadUrl: audioFormat.url
-    });
-
   } catch (err) {
-    console.error('YouTube API Error:', err.message);
+    console.error("YouTube API Error:", err.message);
+    cleanTempFiles(tempFile);
+
+    let message = '❌ Failed to download audio';
+    if (err.message.includes('Video unavailable')) {
+      message = '❌ Video unavailable';
+    } else if (err.message.includes('410')) {
+      message = '❌ YouTube URL expired or removed';
+    }
+
     res.status(500).json({
-      error: '❌ Failed to fetch YouTube audio info',
-      details: err.message
+      error: message,
+      details: err.message,
     });
   }
 });
