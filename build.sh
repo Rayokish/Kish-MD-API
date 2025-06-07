@@ -6,4 +6,3 @@ chmod a+rx /opt/render/.local/bin/yt-dlp
 
 # Regular build commands
 npm install
-npm run build
