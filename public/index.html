@@ -152,6 +152,21 @@
             text-align: center;
         }
         
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
         footer {
             text-align: center;
             margin-top: 50px;
@@ -191,7 +206,7 @@
                     <input type="text" id="lyrics-query" placeholder="e.g. The Beatles - Yesterday">
                 </div>
                 
-                <button onclick="getLyrics()">Get Lyrics</button>
+                <button onclick="getLyrics()" id="lyrics-btn">Get Lyrics</button>
                 
                 <div class="result-container" id="lyrics-result">
                     <h3 class="result-title">Lyrics</h3>
@@ -216,7 +231,7 @@
                     <input type="file" id="image-upload" accept="image/*">
                 </div>
                 
-                <button onclick="removeBackground()">Remove Background</button>
+                <button onclick="removeBackground()" id="removebg-btn">Remove Background</button>
                 
                 <div class="result-container" id="removebg-result">
                     <h3 class="result-title">Result</h3>
@@ -235,7 +250,7 @@
                     <textarea id="ai-prompt" rows="3" placeholder="Ask me anything..."></textarea>
                 </div>
                 
-                <button onclick="askGemini()">Ask Gemini</button>
+                <button onclick="askGemini()" id="gemini-btn">Ask Gemini</button>
                 
                 <div class="result-container" id="gemini-result">
                     <h3 class="result-title">Response</h3>
@@ -267,7 +282,7 @@
                     </select>
                 </div>
                 
-                <button onclick="generateLogo()">Generate Logo</button>
+                <button onclick="generateLogo()" id="logo-btn">Generate Logo</button>
                 
                 <div class="result-container" id="logo-result">
                     <h3 class="result-title">Your Logo</h3>
@@ -280,11 +295,22 @@
     
     <footer>
         <div class="container">
-            <p>KISH MD API Services  &copy; 2025 | All rights reserved</p>
+            <p>KIAH MD API Services &copy; 2025 | All rights reserved</p>
         </div>
     </footer>
     
     <script>
+        // Helper function to show loading state
+        function setLoading(button, isLoading) {
+            if (isLoading) {
+                button.innerHTML = `<span class="loading"></span> ${button.textContent}`;
+                button.disabled = true;
+            } else {
+                button.innerHTML = button.textContent;
+                button.disabled = false;
+            }
+        }
+        
         // Lyrics Finder
         async function getLyrics() {
             const query = document.getElementById('lyrics-query').value.trim();
@@ -293,22 +319,26 @@
                 return;
             }
             
+            const button = document.getElementById('lyrics-btn');
+            setLoading(button, true);
+            
             try {
                 const response = await fetch(`/lyrics?song=${encodeURIComponent(query)}`);
                 const data = await response.json();
                 
-                if (data.error) {
-                    document.getElementById('lyrics-text').textContent = data.error;
-                } else {
-                    document.getElementById('lyrics-text').textContent = 
-                        `${data.artist} - ${data.title}\n\n${data.lyrics}`;
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch lyrics');
                 }
                 
+                document.getElementById('lyrics-text').textContent = 
+                    `${data.artist || 'Unknown'} - ${data.title}\n\n${data.lyrics}`;
                 document.getElementById('lyrics-result').style.display = 'block';
             } catch (error) {
-                document.getElementById('lyrics-text').textContent = 'Failed to fetch lyrics';
+                document.getElementById('lyrics-text').textContent = error.message;
                 document.getElementById('lyrics-result').style.display = 'block';
-                console.error(error);
+                console.error('Lyrics error:', error);
+            } finally {
+                setLoading(button, false);
             }
         }
         
@@ -322,13 +352,15 @@
                 return;
             }
             
+            const button = document.getElementById('removebg-btn');
+            setLoading(button, true);
+            
             try {
                 const formData = new FormData();
                 
                 if (imageUrl) {
                     formData.append('imageUrl', imageUrl);
                 } else {
-                    // Convert image to base64
                     const file = fileInput.files[0];
                     const base64 = await toBase64(file);
                     formData.append('imageData', base64.split(',')[1]);
@@ -340,7 +372,8 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Background removal failed');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Background removal failed');
                 }
                 
                 const blob = await response.blob();
@@ -357,8 +390,10 @@
                 
                 document.getElementById('removebg-result').style.display = 'block';
             } catch (error) {
-                alert('Error removing background: ' + error.message);
-                console.error(error);
+                alert('Error: ' + error.message);
+                console.error('RemoveBG error:', error);
+            } finally {
+                setLoading(button, false);
             }
         }
         
@@ -372,7 +407,7 @@
             });
         }
         
-        // KISH AI
+        // Gemini AI
         async function askGemini() {
             const prompt = document.getElementById('ai-prompt').value.trim();
             if (!prompt) {
@@ -380,21 +415,25 @@
                 return;
             }
             
+            const button = document.getElementById('gemini-btn');
+            setLoading(button, true);
+            
             try {
                 const response = await fetch(`/gemini?prompt=${encodeURIComponent(prompt)}`);
                 const data = await response.json();
                 
-                if (data.error) {
-                    document.getElementById('gemini-response').textContent = data.error;
-                } else {
-                    document.getElementById('gemini-response').textContent = data.response;
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to get response from Gemini');
                 }
                 
+                document.getElementById('gemini-response').textContent = data.response;
                 document.getElementById('gemini-result').style.display = 'block';
             } catch (error) {
-                document.getElementById('gemini-response').textContent = 'Failed to get response from Kish AI';
+                document.getElementById('gemini-response').textContent = error.message;
                 document.getElementById('gemini-result').style.display = 'block';
-                console.error(error);
+                console.error('Gemini error:', error);
+            } finally {
+                setLoading(button, false);
             }
         }
         
@@ -407,6 +446,8 @@
             }
             
             const effect = document.getElementById('logo-effect').value;
+            const button = document.getElementById('logo-btn');
+            setLoading(button, true);
             
             try {
                 // Show loading state
@@ -419,7 +460,8 @@
                 const response = await fetch(`/logo?text=${encodeURIComponent(text)}&effect=${encodeURIComponent(effect)}`);
                 
                 if (!response.ok) {
-                    throw new Error(await response.text());
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || 'Logo generation failed');
                 }
                 
                 // Create object URL from the blob
@@ -437,7 +479,9 @@
                 downloadLink.style.display = 'inline-block';
             } catch (error) {
                 console.error('Logo generation error:', error);
-                alert('Failed to generate logo: ' + error.message);
+                alert('Error: ' + error.message);
+            } finally {
+                setLoading(button, false);
             }
         }
     </script>
