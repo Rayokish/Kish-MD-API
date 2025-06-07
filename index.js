@@ -191,61 +191,44 @@ app.get('/logo', async (req, res) => {
   const { text, effect } = req.query;
 
   if (!text || !effect) {
-    return res.status(400).json({ error: 'Both "text" and "effect" parameters are required' });
+    return res.status(400).json({ error: 'Text and effect parameters are required' });
   }
 
-  const effectPath = effectMap[effect];
-
+  const effectPath = effects[effect];
   if (!effectPath) {
-    return res.status(400).json({
-      error: 'Invalid effect name.',
-      available: Object.keys(effectMap)
-    });
+    return res.status(400).json({ error: 'Invalid effect name' });
   }
 
   try {
-    const effectUrl = `https://photooxy.com/${effectPath}`;
+    // Step 1: Get HTML from effect page
+    const init = await axios.post(`https://photooxy.com/${effectPath}`, 
+      new URLSearchParams({ text_1: text }), 
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'User-Agent': 'Mozilla/5.0'
+        }
+      }
+    );
 
-    const getPage = await axios.get(effectUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0',
-      },
-    });
+    // Step 2: Extract image URL from HTML
+    const $ = cheerio.load(init.data);
+    const imageUrl = $('.thumbnail img').attr('src');
 
-    const $ = cheerio.load(getPage.data);
-    const token = $('input[name="token"]').val();
-
-    if (!token) {
-      return res.status(500).json({ error: 'Token not found on effect page' });
+    if (!imageUrl) {
+      return res.status(500).json({ error: 'Image not found on Photooxy' });
     }
 
-    const form = new FormData();
-    form.append('text[]', text);
-    form.append('token', token);
-
-    const processRes = await axios.post(effectUrl, form, {
-      headers: {
-        ...form.getHeaders(),
-        'User-Agent': 'Mozilla/5.0',
-      },
-    });
-
-    const $$ = cheerio.load(processRes.data);
-    const imagePath = $$('.thumbnail img').attr('src');
-
-    if (!imagePath) {
-      return res.status(500).json({ error: 'Failed to find image path' });
-    }
-
-    const fullImageUrl = `https://photooxy.com${imagePath}`;
-
-    const imageRes = await axios.get(fullImageUrl, { responseType: 'arraybuffer' });
+    // Step 3: Return the final image
+    const fullUrl = `https://photooxy.com${imageUrl}`;
+    const image = await axios.get(fullUrl, { responseType: 'arraybuffer' });
 
     res.set('Content-Type', 'image/png');
-    res.send(imageRes.data);
-  } catch (error) {
-    console.error('Logo maker error:', error.message);
-    res.status(500).json({ error: 'Failed to generate logo', details: error.message });
+    res.send(image.data);
+
+  } catch (err) {
+    console.error('Logo maker error:', err.message);
+    res.status(500).json({ error: 'Failed to generate logo', details: err.message });
   }
 });
 
