@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install yt-dlp in Render's writable directory
+
+# Install yt-dlp into Render's persistent location
 mkdir -p /opt/render/.local/bin
 curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /opt/render/.local/bin/yt-dlp
 chmod a+rx /opt/render/.local/bin/yt-dlp
