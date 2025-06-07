@@ -17,6 +17,19 @@ const execAsync = util.promisify(exec);
 const app = express();
 const port = process.env.PORT || 8080;
 
+const effectMap = {
+  'shadow-sky': 'logo-and-text-effects/shadow-text-effect-in-the-sky-394.html',
+  'flaming': 'logo-and-text-effects/write-text-on-burning-fire-377.html',
+  'romantic': 'logo-and-text-effects/romantic-messages-for-your-loved-one-391.html',
+  'smoke': 'logo-and-text-effects/create-a-smoke-effect-text-370.html',
+  'neon': 'logo-and-text-effects/illuminated-metallic-effect-361.html',
+  'underwater': 'logo-and-text-effects/underwater-ocean-text-effect-389.html',
+  'golden': 'logo-and-text-effects/create-a-3d-golden-text-effect-389.html',
+  'harrypotter': 'logo-and-text-effects/create-harry-potter-text-effect-345.html',
+  'wood-heart': 'logo-and-text-effects/wooden-heart-love-message-377.html',
+  'glow': 'logo-and-text-effects/create-light-glow-sliced-text-effect-361.html'
+};
+
 app.set('trust proxy', 1);
 
 // ======================
@@ -174,44 +187,68 @@ app.get("/gemini", apiLimiter, async (req, res) => {
 });
 
 // Logo Maker using Photooxy
-app.get('/logo', apiLimiter, async (req, res) => {
+app.get('/logo', async (req, res) => {
   const { text, effect } = req.query;
-  
-  if (!text) {
-    return res.status(400).json({ error: 'Text parameter is required' });
+
+  if (!text || !effect) {
+    return res.status(400).json({ error: 'Both "text" and "effect" parameters are required' });
+  }
+
+  const effectPath = effectMap[effect];
+
+  if (!effectPath) {
+    return res.status(400).json({
+      error: 'Invalid effect name.',
+      available: Object.keys(effectMap)
+    });
   }
 
   try {
-    // First request to get the processing page
-    const initResponse = await axios.post(`https://photooxy.com/${effect}`, 
-      new URLSearchParams({ text: text }), 
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-        }
-      }
-    );
+    const effectUrl = `https://photooxy.com/${effectPath}`;
 
-    const $ = cheerio.load(initResponse.data);
-    const imageUrl = $('div.btn-group a').attr('href');
-    
-    if (!imageUrl) {
-      return res.status(500).json({ error: 'Failed to generate logo' });
-    }
-
-    // Second request to get the actual image
-    const imageResponse = await axios.get(`https://photooxy.com${imageUrl}`, {
-      responseType: 'arraybuffer'
+    const getPage = await axios.get(effectUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0',
+      },
     });
 
+    const $ = cheerio.load(getPage.data);
+    const token = $('input[name="token"]').val();
+
+    if (!token) {
+      return res.status(500).json({ error: 'Token not found on effect page' });
+    }
+
+    const form = new FormData();
+    form.append('text[]', text);
+    form.append('token', token);
+
+    const processRes = await axios.post(effectUrl, form, {
+      headers: {
+        ...form.getHeaders(),
+        'User-Agent': 'Mozilla/5.0',
+      },
+    });
+
+    const $$ = cheerio.load(processRes.data);
+    const imagePath = $$('.thumbnail img').attr('src');
+
+    if (!imagePath) {
+      return res.status(500).json({ error: 'Failed to find image path' });
+    }
+
+    const fullImageUrl = `https://photooxy.com${imagePath}`;
+
+    const imageRes = await axios.get(fullImageUrl, { responseType: 'arraybuffer' });
+
     res.set('Content-Type', 'image/png');
-    res.send(imageResponse.data);
+    res.send(imageRes.data);
   } catch (error) {
-    console.error('Logo maker error:', error);
+    console.error('Logo maker error:', error.message);
     res.status(500).json({ error: 'Failed to generate logo', details: error.message });
   }
 });
+
 // ======================
 // Server Start
 // ======================
