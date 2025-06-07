@@ -113,45 +113,38 @@ app.get('/search', apiLimiter, async (req, res) => {
 });
 
 // YouTube Audio Downloader
-app.get('/youtube', apiLimiter, async (req, res) => {
-  const videoUrl = req.query.url;
-  if (!videoUrl) {
-    return res.status(400).json({ error: '❌ YouTube URL missing' });
-  }
+app.get('/youtube', async (req, res) => {
+  const videoUrl = req.query.url;
 
-  if (!ytdl.validateURL(videoUrl)) {
-    return res.status(400).json({ error: '❌ Invalid YouTube URL' });
-  }
+  if (!videoUrl || !ytdl.validateURL(videoUrl)) {
+    return res.status(400).json({ error: '❌ Invalid YouTube URL' });
+  }
 
-  try {
-    const info = await ytdl.getInfo(videoUrl);
-    const title = sanitizeFilename(info.videoDetails.title);
-    const outputPath = path.join(__dirname, `temp_yt_${Date.now()}.%(ext)s`);
+  try {
+    // Use yt-dlp to extract download URL and metadata
+    const { stdout } = await execAsync(`yt-dlp -j "${videoUrl}"`);
+    const info = JSON.parse(stdout);
 
-    // Download using yt-dlp
-    await execAsync(`yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${outputPath}" "${videoUrl}"`);
+    const audioFormat = info.formats.find(f => f.ext === 'm4a' || f.ext === 'mp3');
 
-    const downloadedFile = fs.readdirSync(__dirname).find(f => f.startsWith('temp_yt_') && f.endsWith('.mp3'));
-    const filePath = path.join(__dirname, downloadedFile);
+    if (!audioFormat || !audioFormat.url) {
+      return res.status(500).json({ error: '❌ Unable to retrieve audio download URL' });
+    }
 
-    if (!fs.existsSync(filePath)) throw new Error('Download failed: file not created');
+    res.json({
+      title: info.title,
+      duration: info.duration,
+      thumbnail: info.thumbnail,
+      downloadUrl: audioFormat.url
+    });
 
-    res.setHeader('Content-Disposition', `attachment; filename="${title}.mp3"`);
-    res.setHeader('Content-Type', 'audio/mpeg');
-
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-
-    fileStream.on('close', () => cleanTempFiles(filePath));
-    fileStream.on('error', () => cleanTempFiles(filePath));
-
-  } catch (err) {
-    console.error('YouTube download error:', err.message);
-    res.status(500).json({
-      error: '❌ Failed to download YouTube audio',
-      details: err.message
-    });
-  }
+  } catch (err) {
+    console.error('YouTube API Error:', err.message);
+    res.status(500).json({
+      error: '❌ Failed to fetch YouTube audio info',
+      details: err.message
+    });
+  }
 });
 // Lyrics Endpoint
 app.get('/lyrics', apiLimiter, async (req, res) => {
