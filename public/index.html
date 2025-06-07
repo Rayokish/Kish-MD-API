@@ -10,50 +10,48 @@
       padding: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: #f9f9f9;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
       color: #333;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
 
     header {
       background-color: #4a6cf7;
       color: white;
-      width: 100%;
-      padding: 20px 0;
+      padding: 20px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     header h1 {
       margin: 0;
-      font-size: 2.5rem;
+      font-size: 2.2rem;
     }
 
     main {
-      padding: 40px 20px;
+      padding: 30px 20px;
+      flex: 1;
     }
 
-    main p {
-      font-size: 1.2rem;
-      margin-bottom: 30px;
+    p {
+      font-size: 1.1rem;
+      margin-bottom: 20px;
     }
 
     .endpoints {
       text-align: left;
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 auto 40px;
     }
 
     .endpoint {
-      background-color: white;
-      padding: 15px 20px;
+      background: #fff;
+      padding: 15px;
       margin: 10px 0;
-      border-left: 4px solid #4a6cf7;
-      border-radius: 4px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-left: 5px solid #4a6cf7;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
 
     .endpoint a {
@@ -66,21 +64,103 @@
       text-decoration: underline;
     }
 
-    footer {
-      margin-top: 50px;
+    .logo-section {
+      background: #fff;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    input, select, button {
       padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #4a6cf7;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+
+    button:hover {
+      background-color: #3c5adf;
+    }
+
+    #output img {
+      max-width: 100%;
+      margin-top: 20px;
+      border-radius: 8px;
+    }
+
+    .download-btn {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .gallery {
+      margin-top: 20px;
+    }
+
+    .gallery h3 {
+      margin-bottom: 10px;
+    }
+
+    .preview-images {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .preview-images img {
+      height: 80px;
+      border-radius: 8px;
+      border: 2px solid #eee;
+    }
+
+    footer {
+      padding: 15px;
       font-size: 0.9rem;
       color: #777;
+      background: #f1f1f1;
+    }
+
+    @media screen and (max-width: 600px) {
+      header h1 {
+        font-size: 1.6rem;
+      }
+
+      .logo-section {
+        padding: 15px;
+      }
+
+      .preview-images img {
+        height: 60px;
+      }
     }
   </style>
 </head>
 <body>
+
   <header>
-    <h1>🚀 KIAH MD API Server</h1>
+    <h1>🚀 KISH MD API Server</h1>
   </header>
 
   <main>
-    <p>Welcome to the KIAH MD Bot API! Explore the available endpoints below:</p>
+    <p>Welcome to the KISH MD Bot API! Explore the available endpoints below:</p>
 
     <div class="endpoints">
       <div class="endpoint">
@@ -92,15 +172,82 @@
         <small>→ Ask Gemini AI a question</small>
       </div>
       <div class="endpoint">
-        <a href="/logo?text=KISH&effect=text-effects">/logo?text=KISH&effect=text-effects</a><br/>
+        <a href="#logo-maker">/logo?text=KISH&effect=text-effects</a><br/>
         <small>→ Generate a logo</small>
       </div>
-      <!-- Add more API links here -->
+    </div>
+
+    <div class="logo-section" id="logo-maker">
+      <h2>🎨 Logo Maker</h2>
+      <form id="logoForm">
+        <input type="text" id="text" placeholder="Enter your text" required />
+        <select id="effect">
+          <option value="shadow-sky">Shadow Sky</option>
+          <option value="flaming">Flaming</option>
+          <option value="romantic">Romantic</option>
+          <option value="smoke">Smoke</option>
+          <option value="neon">Neon</option>
+          <option value="underwater">Underwater</option>
+          <option value="golden">Golden</option>
+          <option value="harrypotter">Harry Potter</option>
+          <option value="wood-heart">Wood Heart</option>
+          <option value="glow">Glow</option>
+        </select>
+        <button type="submit">Generate Logo</button>
+      </form>
+      <div id="output"></div>
+      <a id="downloadBtn" class="download-btn" download="logo.png">⬇️ Download Logo</a>
+
+      <div class="gallery">
+        <h3>✨ Preview Effects Gallery</h3>
+        <div class="preview-images">
+          <img src="/logo?text=KIAH&effect=shadow-sky" alt="Shadow Sky">
+          <img src="/logo?text=KIAH&effect=flaming" alt="Flaming">
+          <img src="/logo?text=KIAH&effect=romantic" alt="Romantic">
+          <img src="/logo?text=KIAH&effect=smoke" alt="Smoke">
+          <img src="/logo?text=KIAH&effect=neon" alt="Neon">
+          <img src="/logo?text=KIAH&effect=golden" alt="Golden">
+          <img src="/logo?text=KIAH&effect=harrypotter" alt="Harry Potter">
+          <img src="/logo?text=KIAH&effect=underwater" alt="Underwater">
+        </div>
+      </div>
     </div>
   </main>
 
   <footer>
-    &copy; 2025 KIAH MD API | Powered by Express.js
+    &copy; 2025 KISH-MD API | Powered by Express.js
   </footer>
+
+  <script>
+    const form = document.getElementById('logoForm');
+    const output = document.getElementById('output');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      output.innerHTML = '⏳ Generating logo...';
+      downloadBtn.style.display = 'none';
+
+      const text = document.getElementById('text').value;
+      const effect = document.getElementById('effect').value;
+      const imageUrl = `/logo?text=${encodeURIComponent(text)}&effect=${effect}`;
+
+      try {
+        const img = new Image();
+        img.src = imageUrl;
+        img.onload = () => {
+          output.innerHTML = '';
+          output.appendChild(img);
+          downloadBtn.href = img.src;
+          downloadBtn.style.display = 'inline-block';
+        };
+        img.onerror = () => {
+          output.innerHTML = '❌ Failed to generate logo.';
+        };
+      } catch (err) {
+        output.innerHTML = '❌ Error generating logo.';
+      }
+    });
+  </script>
 </body>
 </html>
