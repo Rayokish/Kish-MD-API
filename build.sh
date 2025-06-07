@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-# Install yt-dlp into Render's persistent location
-mkdir -p /opt/render/.local/bin
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /opt/render/.local/bin/yt-dlp
-chmod a+rx /opt/render/.local/bin/yt-dlp
+# Create bin directory for yt-dlp
+mkdir -p /usr/local/bin
 
-# Regular build commands
-npm install
+# Download yt-dlp to /usr/local/bin
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+
+# Make it executable
+chmod +x /usr/local/bin/yt-dlp
