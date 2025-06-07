@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
+# Install yt-dlp in Render's writable directory
+mkdir -p /opt/render/.local/bin
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /opt/render/.local/bin/yt-dlp
+chmod a+rx /opt/render/.local/bin/yt-dlp
 
-# Install yt-dlp globally
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
-chmod a+rx /usr/local/bin/yt-dlp
-
-# Install Node.js dependencies
+# Regular build commands
 npm install
+npm run build
